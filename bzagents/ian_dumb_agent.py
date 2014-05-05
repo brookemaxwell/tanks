@@ -62,7 +62,8 @@ class Agent(object):
         elif time_diff % 10 < 7:
 			self.commands = []
 			for x in range(0, len(mytanks)):
-				self.commands.append(Command(x, -1, 0, shootCmd))
+				self.commands.append(Command(x, 0, 0, shootCmd))
+		#rotate for 1.5 sec
         elif time_diff % 10 < 8.5:
 			self.commands = []
 			for x in range(0, len(mytanks)):
