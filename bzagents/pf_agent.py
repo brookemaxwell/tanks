@@ -31,7 +31,12 @@ class Agent(object):
         self.commands = []
 
         for tank in mytanks:
-            self.attack_enemies(tank)
+			"""
+			curVector = Vector(tank.vx, tank.vy)
+			desiredVector = potentialfield.getDesiredVector(tank)
+        	cmd = controller.getCommandFromVectors(tank, curVector, desiredVector)
+        	self.commands.append(cmd)
+			"""
 
         results = self.bzrc.do_commands(self.commands)
 
