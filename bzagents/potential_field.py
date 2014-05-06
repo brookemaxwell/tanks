@@ -9,12 +9,12 @@ import time
 
 
 class PotentialField:
-    """Class handles queries and responses with remote controled tanks."""
+	"""Class handles queries and responses with remote controled tanks."""
 
-    def __init__(self, agent):
+	def __init__(self, agent):
 		self.agent = agent
  
-    # Information Requests:
+	# Information Requests:
 
 	def get_angle(self, x, y, x_o, y_o):
 		return atan2((y_o-y) / (x_o-x))	#atan2((y1-y2) / (x1-x2))?
@@ -36,7 +36,7 @@ class PotentialField:
 		return (x_d - y_d - linex1*liney2 + linex2 + liney1) / sqrt(x_d * x_d + y_d * y_d)
 		
 	def get_point_distances(self, mytank, obstacle):
-		d1 = get_distance(obstacle.corner1_x, obstacle.corner1_y 
+		d1 = get_distance(obstacle.corner1_x, obstacle.corner1_y, 
 								mytank.x, mytank.y)
 		d2 = get_distance(obstacle.corner2_x, obstacle.corner2_y,
 								mytank.x, mytank.y)
@@ -64,22 +64,22 @@ class PotentialField:
 		return [d1, d2, d3, d4]
 		
 	def sign(self, num):
-		if(num < 0)
+		if(num < 0):
 			return -1
 		return 1
 
-    def get_repulse_field(self, mytank, obj):
-        """get a repulsive vector"""
-        r = 1#goal radius
-        s = 100#field radius
-        b = 1#attraction factor
-        
-        d = get_center_distance(mytank, obj)
-        theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
-        
-        #then calc dx, dy based on d
+	def get_repulse_field(self, mytank, obj):
+		"""get a repulsive vector"""
+		r = 1#goal radius
+		s = 100#field radius
+		b = 1#attraction factor
+		
+		d = get_center_distance(mytank, obj)
+		theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
+		
+		#then calc dx, dy based on d
 		#return new vector(dx, dy)?
-        dx = 0
+		dx = 0
 		dy = 0
 		
 		if d < r:
@@ -90,21 +90,21 @@ class PotentialField:
 			dy = -b * (s + r - d) * sin(theta)
 			
 		#else dx, dy = 0
-		        
-        vector = Vector()
+				
+		vector = Vector()
 		vector.set_x_and_y(dx, dy)
-		        
-        return vector
+				
+		return vector
 
-    def get_attract_field(self, mytank, obj):
-        """get an attractive vector"""
-        r = 1#goal radius
-        s = 100#field radius
-        a = 1#attraction factor
-        
-        d = get_center_distance(mytank, obj)
-        theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
-        #then calc dx, dy based on d
+	def get_attract_field(self, mytank, obj):
+		"""get an attractive vector"""
+		r = 1#goal radius
+		s = 100#field radius
+		a = 1#attraction factor
+		
+		d = get_center_distance(mytank, obj)
+		theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
+		#then calc dx, dy based on d
 		#return new vector(dx, dy)?
 		dx = 0;
 		dy = 0
@@ -116,14 +116,14 @@ class PotentialField:
 			dx = a * (d-r) * cos(theta)
 			dy = a * (d-r) * sin(theta)
 		#else dx = 0 dy = 0
-		        
+				
 		vector = Vector()
 		vector.set_x_and_y(dx, dy)
-		        
-        return vector
-        
-    def get_obstacle_tangent_field(self, mytank, obj):
-        """get a tngential vector"""
+				
+		return vector
+		
+	def get_obstacle_tangent_field(self, mytank, obj):
+		"""get a tngential vector"""
 		d_edges = get_line_distances(mytank, obj)
 		d_points = get_point_distances(mytank, obj)
 		
@@ -135,7 +135,7 @@ class PotentialField:
 			corner = d_points.index(d_close_point)
 			o_x = obj["corner"+str(corner)+"_x"]
 			o_y = obj["corner"+str(corner)+"_y"]
-			theta = get_angle(mytank.x,mytank.y, o_x, o_y]
+			theta = get_angle(mytank.x,mytank.y, o_x, o_y)
 			
 		#then calc dx, dy based on d_close_edge
 		#return new vector(dx, dy)?
@@ -152,68 +152,68 @@ class PotentialField:
 			dx = -b * (s + r - d) * cos(theta)
 			dy = -b * (s + r - d) * sin(theta)
 			
-        vector = Vector()
+		vector = Vector()
 		vector.set_x_and_y(dx, dy)
-		        
-        return vector
+				
+		return vector
 
-    def add_vectors(self, vec1, vec2):
-        """add two vectors together"""
-        x1 = vec1.velocity * cos(vec1.angle)
-        y1 = vec1.velocity * sin(vec1.angle)
-       
-        x2 = vec2.velocity * cos(vec2.angle)
-        y2 = vec2.velocity * sin(vec2.angle)
-        
-        r_x = x1 + x2
-        r_y = y1 + y2
-        
-        velocity = sqrt(r_x*r_x + r_y*r_y)
-        angle = atan2(r_y/r_x)
-        
-        return Vector(velocity, angle)
-    
-    def get_desired_accel_vector(self, mytank):
-        """get an attractive vector"""
-        enemies = self.agent.enemies
-        obstacles = self.agent.obstacles
-        goals = [flag for flags in self.agent.flags if flag.color !=
-                        self.constants['team']]
-        if mytank.flag != "-":
+	def add_vectors(self, vec1, vec2):
+		"""add two vectors together"""
+		x1 = vec1.velocity * cos(vec1.angle)
+		y1 = vec1.velocity * sin(vec1.angle)
+	   
+		x2 = vec2.velocity * cos(vec2.angle)
+		y2 = vec2.velocity * sin(vec2.angle)
+		
+		r_x = x1 + x2
+		r_y = y1 + y2
+		
+		velocity = sqrt(r_x*r_x + r_y*r_y)
+		angle = atan2(r_y/r_x)
+		
+		return Vector(velocity, angle)
+	
+	def get_desired_accel_vector(self, mytank):
+		"""get an attractive vector"""
+		enemies = self.agent.enemies
+		obstacles = self.agent.obstacles
+		goals = [flag for flags in self.agent.flags if flag.color !=
+						self.constants['team']]
+		if mytank.flag != "-":
 			goals = [base for bases in self.agent.bases if base.color !=
-                        self.constants['team']]
-        
-        num_of_elements = len(goals) + len(enemies) + len(obstacles)
-        vectors = [num_of_elements]
-        i = 0
-        for goal in goals:
+						self.constants['team']]
+		
+		num_of_elements = len(goals) + len(enemies) + len(obstacles)
+		vectors = [num_of_elements]
+		i = 0
+		for goal in goals:
 			vectors[i] = get_attract_field(mytank, goal)
-			i++
+			i+=1
 		for obstacle in obstacles:
 			vectors[i] = get_tangent_field(mytank, obstacle)
-			i++
+			i+=1
 		for enemy in enemies:
 			vectors[i] = get_repulse_field(mytank, enemy)
-			i++
-        
-        desired_vec = Vector(0,0)
-        for vector in vectors:
+			i+=1
+		
+		desired_vec = Vector(0,0)
+		for vector in vectors:
 			desired_vec = add_vectors(desired_vec, vector);
-        
-        return desired_vec
+		
+		return desired_vec
 
 
 
 class Vector(object):
-    """Class for setting a command for a tank."""
+	"""Class for setting a command for a tank."""
 
-    def __init__(self, velocity=0, angle=0):
-        self.velocity = velocity
-        self.angle = angle
-        
-    def set_x_and_y(self, dx, dy):
+	def __init__(self, velocity=0, angle=0):
+		self.velocity = velocity
+		self.angle = angle
+		
+	def set_x_and_y(self, dx, dy):
 		self.velocity = sqrt(dx*dx + dy*dy)
-		self.angle = 0#acos2((dx * dy)/(self.velocity))#or something...
-    
+		self.angle = atan2(dx/dy)
+	
 
 
