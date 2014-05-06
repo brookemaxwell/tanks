@@ -16,12 +16,15 @@ class PotentialField:
  
     # Information Requests:
 
-	def get_angle(self, x1, y1, x2, y2):
-		return atan2((y2-y1) / (x2-x1))	#atan2((y1-y2) / (x1-x2))?
+	def get_angle(self, x, y, x_o, y_o):
+		return atan2((y_o-y) / (x_o-x))	#atan2((y1-y2) / (x1-x2))?
+	
 	def get_center_distance(self, mytank, obj):
 		return sqrt(pow(obj.x - mytank.x, 2) + pow(mytank.y - obj.y, 2))
-	def get_distance(self, x1, y1, x2, y2):
-		return sqrt(pow(x1 - x2, 2) + pow(y2 - y1, 2))
+	
+	def get_distance(self, x, y, x_o, y_o):
+		return sqrt(pow(x - x_o, 2) + pow(y_o - y, 2))
+	
 	def distance_to_line(self, linex1, linex2, liney1, liney2, x, y):
 		# (x2-x1)x - (y2-y1)y - x1y2 + x2y1
 		# ---------------------------------
@@ -59,26 +62,65 @@ class PotentialField:
 								mytank.x, mytank.y)
 		
 		return [d1, d2, d3, d4]
+		
+	def sign(self, num):
+		if(num < 0)
+			return -1
+		return 1
 
     def get_repulse_field(self, mytank, obj):
         """get a repulsive vector"""
+        r = 1#goal radius
+        s = 100#field radius
+        b = 1#attraction factor
         
         d = get_center_distance(mytank, obj)
         theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
         
         #then calc dx, dy based on d
 		#return new vector(dx, dy)?
-        
-        return
+        dx = 0
+		dy = 0
+		
+		if d < r:
+			dx = -sign(cos(theta))*float('inf')
+			dy = -sign(sin(theta))*float('inf')
+		elif d >= r and d <= s+r:
+			dx = -b * (s + r - d) * cos(theta)
+			dy = -b * (s + r - d) * sin(theta)
+			
+		#else dx, dy = 0
+		        
+        vector = Vector()
+		vector.set_x_and_y(dx, dy)
+		        
+        return vector
 
     def get_attract_field(self, mytank, obj):
         """get an attractive vector"""
+        r = 1#goal radius
+        s = 100#field radius
+        a = 1#attraction factor
+        
         d = get_center_distance(mytank, obj)
         theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
         #then calc dx, dy based on d
 		#return new vector(dx, dy)?
-        
-        return 
+		dx = 0;
+		dy = 0
+		
+		if d > (s+r):
+			dx = a * s * cos(theta)
+			dy = a * s * sin(theta)
+		elif d >= r: #and d<=s+r
+			dx = a * (d-r) * cos(theta)
+			dy = a * (d-r) * sin(theta)
+		#else dx = 0 dy = 0
+		        
+		vector = Vector()
+		vector.set_x_and_y(dx, dy)
+		        
+        return vector
         
     def get_obstacle_tangent_field(self, mytank, obj):
         """get a tngential vector"""
@@ -97,7 +139,23 @@ class PotentialField:
 			
 		#then calc dx, dy based on d_close_edge
 		#return new vector(dx, dy)?
-        return 
+		
+		theta = theta + pi/2.0 #to make tangential
+		
+		dx = 0
+		dy = 0
+		
+		if d < r:
+			dx = -sign(cos(theta))*float('inf')
+			dy = -sign(sin(theta))*float('inf')
+		elif d >= r and d <= s+r:
+			dx = -b * (s + r - d) * cos(theta)
+			dy = -b * (s + r - d) * sin(theta)
+			
+        vector = Vector()
+		vector.set_x_and_y(dx, dy)
+		        
+        return vector
 
     def add_vectors(self, vec1, vec2):
         """add two vectors together"""
@@ -115,7 +173,7 @@ class PotentialField:
         
         return Vector(velocity, angle)
     
-    def get_desired_vector(self, mytank):
+    def get_desired_accel_vector(self, mytank):
         """get an attractive vector"""
         enemies = self.agent.enemies
         obstacles = self.agent.obstacles
@@ -149,12 +207,13 @@ class PotentialField:
 class Vector(object):
     """Class for setting a command for a tank."""
 
-    def __init__(self, velocity, angle):
+    def __init__(self, velocity=0, angle=0):
         self.velocity = velocity
         self.angle = angle
         
-    #def __init__(self, vx, vy):
-		#self.velocity = calculate...
-		#self.angle = calculate...
+    def set_x_and_y(self, dx, dy):
+		self.velocity = sqrt(dx*dx + dy*dy)
+		self.angle = 0#acos2((dx * dy)/(self.velocity))#or something...
+    
 
 
