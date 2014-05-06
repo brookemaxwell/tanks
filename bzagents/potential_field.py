@@ -14,223 +14,135 @@ class PotentialField:
     def __init__(self, agent):
 		self.agent = agent
  
-'''
-    def read_teams(self):
-        """Get team information."""
-        self.expect('begin')
-        teams = []
-        while True:
-            i, rest = self.expect_multi(('team',),('end',))
-            if i == 1:
-                break
-            team = Answer()
-            team.color = rest[0]
-            team.count = float(rest[1])
-            team.base = [(float(x), float(y)) for (x, y) in
-                    zip(rest[2:10:2], rest[3:10:2])]
-            teams.append(team)
-        return teams
-
-    def read_obstacles(self):
-        """Get obstacle information."""
-        self.expect('begin')
-        obstacles = []
-        while True:
-            i, rest = self.expect_multi(('obstacle',),('end',))
-            if i == 1:
-                break
-            obstacle = [(float(x), float(y)) for (x, y) in
-                    zip(rest[::2], rest[1::2])]
-            obstacles.append(obstacle)
-        return obstacles
-
-    def read_occgrid(self):
-        """Read grid."""
-        response = self.read_arr()
-        if 'fail' in response:
-            return None
-        pos = tuple(int(a) for a in self.expect('at')[0].split(','))
-        size = tuple(int(a) for a in self.expect('size')[0].split('x'))
-        grid = [[0 for i in range(size[1])] for j in range(size[0])]
-        for x in range(size[0]):
-            line = self.read_arr()[0]
-            for y in range(size[1]):
-                if line[y] == '1':
-                    grid[x][y] = 1
-        self.expect('end', True)
-        return pos, grid
-
-    def read_flags(self):
-        """Get flag information."""
-        line = self.read_arr()
-        if line[0] != 'begin':
-            self.die_confused('begin', line)
-
-        flags = []
-        while True:
-            line = self.read_arr()
-            if line[0] == 'flag':
-                flag = Answer()
-                flag.color = line[1]
-                flag.poss_color = line[2]
-                flag.x = float(line[3])
-                flag.y = float(line[4])
-                flags.append(flag)
-            elif line[0] == 'end':
-                break
-            else:
-                self.die_confused('flag or end', line)
-        return flags
-
-    def read_shots(self):
-        """Get shot information."""
-        line = self.read_arr()
-        if line[0] != 'begin':
-            self.die_confused('begin', line)
-
-        shots = []
-        while True:
-            line = self.read_arr()
-            if line[0] == 'shot':
-                shot = Answer()
-                shot.x = float(line[1])
-                shot.y = float(line[2])
-                shot.vx = float(line[3])
-                shot.vy = float(line[4])
-                shots.append(shot)
-            elif line[0] == 'end':
-                break
-            else:
-                self.die_confused('shot or end', line)
-        return shots
-
-    def read_mytanks(self):
-        """Get friendly tank information."""
-        line = self.read_arr()
-        if line[0] != 'begin':
-            self.die_confused('begin', line)
-
-        tanks = []
-        while True:
-            line = self.read_arr()
-            if line[0] == 'mytank':
-                tank = Answer()
-                tank.index = int(line[1])
-                tank.callsign = line[2]
-                tank.status = line[3]
-                tank.shots_avail = int(line[4])
-                tank.time_to_reload = float(line[5])
-                tank.flag = line[6]
-                tank.x = float(line[7])
-                tank.y = float(line[8])
-                tank.angle = float(line[9])
-                tank.vx = float(line[10])
-                tank.vy = float(line[11])
-                tank.angvel = float(line[12])
-                tanks.append(tank)
-            elif line[0] == 'end':
-                break
-            else:
-                self.die_confused('mytank or end', line)
-        return tanks
-
-    def read_othertanks(self):
-        """Get enemy tank information."""
-        line = self.read_arr()
-        if line[0] != 'begin':
-            self.die_confused('begin', line)
-
-        tanks = []
-        while True:
-            line = self.read_arr()
-            if line[0] == 'othertank':
-                tank = Answer()
-                tank.callsign = line[1]
-                tank.color = line[2]
-                tank.status = line[3]
-                tank.flag = line[4]
-                tank.x = float(line[5])
-                tank.y = float(line[6])
-                tank.angle = float(line[7])
-                tanks.append(tank)
-            elif line[0] == 'end':
-                break
-            else:
-                self.die_confused('othertank or end', line)
-        return tanks
-
-    def read_bases(self):
-        """Get base information."""
-        bases = []
-        line = self.read_arr()
-        if line[0] != 'begin':
-            self.die_confused('begin', line)
-        while True:
-            line = self.read_arr()
-            if line[0] == 'base':
-                base = Answer()
-                base.color = line[1]
-                base.corner1_x = float(line[2])
-                base.corner1_y = float(line[3])
-                base.corner2_x = float(line[4])
-                base.corner2_y = float(line[5])
-                base.corner3_x = float(line[6])
-                base.corner3_y = float(line[7])
-                base.corner4_x = float(line[8])
-                base.corner4_y = float(line[9])
-                bases.append(base)
-            elif line[0] == 'end':
-                break
-            else:
-                self.die_confused('othertank or end', line)
-        return bases
-
-    def read_constants(self):
-        """Get constants."""
-        line = self.read_arr()
-        if line[0] != 'begin':
-            self.die_confused('begin', line)
-
-        constants = {}
-        while True:
-            line = self.read_arr()
-            if line[0] == 'constant':
-                constants[line[1]] = line[2]
-            elif line[0] == 'end':
-                break
-            else:
-                self.die_confused('constant or end', line)
-        return constants
-'''
-
     # Information Requests:
 
-    def get_tangent_field(self, mytank, obj):
-        """get a tngential vector"""
-       
-        return 
+	def get_angle(self, x1, y1, x2, y2):
+		return atan2((y2-y1) / (x2-x1))	#atan2((y1-y2) / (x1-x2))?
+	def get_center_distance(self, mytank, obj):
+		return sqrt(pow(obj.x - mytank.x, 2) + pow(mytank.y - obj.y, 2))
+	def get_distance(self, x1, y1, x2, y2):
+		return sqrt(pow(x1 - x2, 2) + pow(y2 - y1, 2))
+	def distance_to_line(self, linex1, linex2, liney1, liney2, x, y):
+		# (x2-x1)x - (y2-y1)y - x1y2 + x2y1
+		# ---------------------------------
+		# sqrt ((x2-x1)^2 + (y2 - y1)^2) 
+		
+		x_d = ((linex2 - linex1) * x)
+		y_d = ((liney2 - liney1) * y)
+		
+		return (x_d - y_d - linex1*liney2 + linex2 + liney1) / sqrt(x_d * x_d + y_d * y_d)
+		
+	def get_point_distances(self, mytank, obstacle):
+		d1 = get_distance(obstacle.corner1_x, obstacle.corner1_y 
+								mytank.x, mytank.y)
+		d2 = get_distance(obstacle.corner2_x, obstacle.corner2_y,
+								mytank.x, mytank.y)
+		d3 = get_distance(obstacle.corner3_x, obstacle.corner3_y, 
+								mytank.x, mytank.y)
+		d4 = get_distance(obstacle.corner4_x, obstacle.corner4_y,
+								mytank.x, mytank.y)
+		
+		return [d1, d2, d3, d4]
+	
+	def get_line_distances(self, mytank, obstacle):
+		d1 = distance_to_line(obstacle.corner1_x, obstacle.corner2_x, 
+								obstacle.corner1_y, obstacle.corner2_y, 
+								mytank.x, mytank.y)
+		d2 = distance_to_line(obstacle.corner2_x, obstacle.corner3_x, 
+								obstacle.corner2_y, obstacle.corner3_y, 
+								mytank.x, mytank.y)
+		d3 = distance_to_line(obstacle.corner3_x, obstacle.corner4_x, 
+								obstacle.corner3_y, obstacle.corner4_y, 
+								mytank.x, mytank.y)
+		d4 = distance_to_line(obstacle.corner4_x, obstacle.corner1_x, 
+								obstacle.corner4_y, obstacle.corner1_y, 
+								mytank.x, mytank.y)
+		
+		return [d1, d2, d3, d4]
 
     def get_repulse_field(self, mytank, obj):
         """get a repulsive vector"""
+        
+        d = get_center_distance(mytank, obj)
+        theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
+        
+        #then calc dx, dy based on d
+		#return new vector(dx, dy)?
         
         return
 
     def get_attract_field(self, mytank, obj):
         """get an attractive vector"""
+        d = get_center_distance(mytank, obj)
+        theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
+        #then calc dx, dy based on d
+		#return new vector(dx, dy)?
         
+        return 
+        
+    def get_obstacle_tangent_field(self, mytank, obj):
+        """get a tngential vector"""
+		d_edges = get_line_distances(mytank, obj)
+		d_points = get_point_distances(mytank, obj)
+		
+		d_close_edge = min(d_edges[0], d_edges[1], d_edges[2], d_edges[3])
+		d_close_point = min(d_points[0], d_points[1], d_points[2], d_points[3])
+		
+		theta = pi/2.0 #distance b/w line and point is perpendicular unless distance is to a corner
+		if d_close_point == d_close_edge:
+			corner = d_points.index(d_close_point)
+			o_x = obj["corner"+str(corner)+"_x"]
+			o_y = obj["corner"+str(corner)+"_y"]
+			theta = get_angle(mytank.x,mytank.y, o_x, o_y]
+			
+		#then calc dx, dy based on d_close_edge
+		#return new vector(dx, dy)?
         return 
 
     def add_vectors(self, vec1, vec2):
         """add two vectors together"""
+        x1 = vec1.velocity * cos(vec1.angle)
+        y1 = vec1.velocity * sin(vec1.angle)
+       
+        x2 = vec2.velocity * cos(vec2.angle)
+        y2 = vec2.velocity * sin(vec2.angle)
         
-        return
+        r_x = x1 + x2
+        r_y = y1 + y2
+        
+        velocity = sqrt(r_x*r_x + r_y*r_y)
+        angle = atan2(r_y/r_x)
+        
+        return Vector(velocity, angle)
     
     def get_desired_vector(self, mytank):
         """get an attractive vector"""
-        #self.agent.enemies
+        enemies = self.agent.enemies
+        obstacles = self.agent.obstacles
+        goals = [flag for flags in self.agent.flags if flag.color !=
+                        self.constants['team']]
+        if mytank.flag != "-":
+			goals = [base for bases in self.agent.bases if base.color !=
+                        self.constants['team']]
         
+        num_of_elements = len(goals) + len(enemies) + len(obstacles)
+        vectors = [num_of_elements]
+        i = 0
+        for goal in goals:
+			vectors[i] = get_attract_field(mytank, goal)
+			i++
+		for obstacle in obstacles:
+			vectors[i] = get_tangent_field(mytank, obstacle)
+			i++
+		for enemy in enemies:
+			vectors[i] = get_repulse_field(mytank, enemy)
+			i++
         
-        return
+        desired_vec = Vector(0,0)
+        for vector in vectors:
+			desired_vec = add_vectors(desired_vec, vector);
+        
+        return desired_vec
 
 
 
