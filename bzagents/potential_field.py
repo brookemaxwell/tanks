@@ -5,6 +5,7 @@
 from __future__ import division
 
 import math
+from math import sqrt,atan2,cos,sin,pi
 import time
 
 
@@ -17,7 +18,7 @@ class PotentialField:
 	# Information Requests:
 
 	def get_angle(self, x, y, x_o, y_o):
-		return atan2((y_o-y) / (x_o-x))	#atan2((y1-y2) / (x1-x2))?
+		return atan2((y_o-y), (x_o-x))	#atan2((y1-y2) / (x1-x2))?
 	
 	def get_center_distance(self, mytank, obj):
 		return sqrt(pow(obj.x - mytank.x, 2) + pow(mytank.y - obj.y, 2))
@@ -36,30 +37,32 @@ class PotentialField:
 		return (x_d - y_d - linex1*liney2 + linex2 + liney1) / sqrt(x_d * x_d + y_d * y_d)
 		
 	def get_point_distances(self, mytank, obstacle):
-		d1 = get_distance(obstacle.corner1_x, obstacle.corner1_y, 
+		d1 = self.get_distance(obstacle[0][0], obstacle[0][1], 
 								mytank.x, mytank.y)
-		d2 = get_distance(obstacle.corner2_x, obstacle.corner2_y,
+		d2 = self.get_distance(obstacle[1][0], obstacle[1][1],
 								mytank.x, mytank.y)
-		d3 = get_distance(obstacle.corner3_x, obstacle.corner3_y, 
+		d3 = self.get_distance(obstacle[2][0], obstacle[2][1],
 								mytank.x, mytank.y)
-		d4 = get_distance(obstacle.corner4_x, obstacle.corner4_y,
+		d4 = self.get_distance(obstacle[3][0], obstacle[3][1],
 								mytank.x, mytank.y)
 		
 		return [d1, d2, d3, d4]
 	
 	def get_line_distances(self, mytank, obstacle):
-		d1 = distance_to_line(obstacle.corner1_x, obstacle.corner2_x, 
-								obstacle.corner1_y, obstacle.corner2_y, 
+		d1 = self.distance_to_line(obstacle[0][0], obstacle[1][0], 
+								obstacle[0][1], obstacle[1][1], 
 								mytank.x, mytank.y)
-		d2 = distance_to_line(obstacle.corner2_x, obstacle.corner3_x, 
-								obstacle.corner2_y, obstacle.corner3_y, 
+		d2 = self.distance_to_line(obstacle[1][0], obstacle[2][0], 
+								obstacle[1][1], obstacle[2][1], 
 								mytank.x, mytank.y)
-		d3 = distance_to_line(obstacle.corner3_x, obstacle.corner4_x, 
-								obstacle.corner3_y, obstacle.corner4_y, 
+		d3 = self.distance_to_line(obstacle[2][0], obstacle[3][0], 
+								obstacle[2][1], obstacle[3][1], 
 								mytank.x, mytank.y)
-		d4 = distance_to_line(obstacle.corner4_x, obstacle.corner1_x, 
-								obstacle.corner4_y, obstacle.corner1_y, 
+		d4 = self.distance_to_line(obstacle[3][0], obstacle[0][0], 
+								obstacle[3][1], obstacle[0][1], 
 								mytank.x, mytank.y)
+								
+		
 		
 		return [d1, d2, d3, d4]
 		
@@ -74,8 +77,8 @@ class PotentialField:
 		s = 100#field radius
 		b = 1#attraction factor
 		
-		d = get_center_distance(mytank, obj)
-		theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
+		d = self.get_center_distance(mytank, obj)
+		theta = self.get_angle(mytank.x, mytank.y, obj.x, obj.y)
 		
 		#then calc dx, dy based on d
 		#return new vector(dx, dy)?
@@ -83,8 +86,8 @@ class PotentialField:
 		dy = 0
 		
 		if d < r:
-			dx = -sign(cos(theta))*float('inf')
-			dy = -sign(sin(theta))*float('inf')
+			dx = -self.sign(cos(theta))*float('inf')
+			dy = -self.sign(sin(theta))*float('inf')
 		elif d >= r and d <= s+r:
 			dx = -b * (s + r - d) * cos(theta)
 			dy = -b * (s + r - d) * sin(theta)
@@ -102,8 +105,8 @@ class PotentialField:
 		s = 100#field radius
 		a = 1#attraction factor
 		
-		d = get_center_distance(mytank, obj)
-		theta = get_angle(mytank.x, mytank.y, obj.x, obj.y)
+		d = self.get_center_distance(mytank, obj)
+		theta = self.get_angle(mytank.x, mytank.y, obj.x, obj.y)
 		#then calc dx, dy based on d
 		#return new vector(dx, dy)?
 		dx = 0;
@@ -123,9 +126,13 @@ class PotentialField:
 		return vector
 		
 	def get_obstacle_tangent_field(self, mytank, obj):
+		r = 1#goal radius
+		s = 100#field radius
+		b = 1#repulisve factor
+		
 		"""get a tngential vector"""
-		d_edges = get_line_distances(mytank, obj)
-		d_points = get_point_distances(mytank, obj)
+		d_edges = self.get_line_distances(mytank, obj)
+		d_points = self.get_point_distances(mytank, obj)
 		
 		d_close_edge = min(d_edges[0], d_edges[1], d_edges[2], d_edges[3])
 		d_close_point = min(d_points[0], d_points[1], d_points[2], d_points[3])
@@ -135,7 +142,7 @@ class PotentialField:
 			corner = d_points.index(d_close_point)
 			o_x = obj["corner"+str(corner)+"_x"]
 			o_y = obj["corner"+str(corner)+"_y"]
-			theta = get_angle(mytank.x,mytank.y, o_x, o_y)
+			theta = self.get_angle(mytank.x,mytank.y, o_x, o_y)
 			
 		#then calc dx, dy based on d_close_edge
 		#return new vector(dx, dy)?
@@ -145,12 +152,12 @@ class PotentialField:
 		dx = 0
 		dy = 0
 		
-		if d < r:
-			dx = -sign(cos(theta))*float('inf')
-			dy = -sign(sin(theta))*float('inf')
-		elif d >= r and d <= s+r:
-			dx = -b * (s + r - d) * cos(theta)
-			dy = -b * (s + r - d) * sin(theta)
+		if d_close_edge < r:
+			dx = -self.sign(cos(theta))*float('inf')
+			dy = -self.sign(sin(theta))*float('inf')
+		elif d_close_edge >= r and d_close_edge <= s+r:
+			dx = -b * (s + r - d_close_edge) * cos(theta)
+			dy = -b * (s + r - d_close_edge) * sin(theta)
 			
 		vector = Vector()
 		vector.set_x_and_y(dx, dy)
@@ -169,7 +176,7 @@ class PotentialField:
 		r_y = y1 + y2
 		
 		velocity = sqrt(r_x*r_x + r_y*r_y)
-		angle = atan2(r_y/r_x)
+		angle = atan2(r_y,r_x)
 		
 		return Vector(velocity, angle)
 	
@@ -177,28 +184,26 @@ class PotentialField:
 		"""get an attractive vector"""
 		enemies = self.agent.enemies
 		obstacles = self.agent.obstacles
-		goals = [flag for flags in self.agent.flags if flag.color !=
-						self.constants['team']]
+		flags = self.agent.flags
+		goals = [flag for flag in flags if flag.color !=
+						self.agent.constants['team']]
 		if mytank.flag != "-":
-			goals = [base for bases in self.agent.bases if base.color !=
-						self.constants['team']]
+			bases = self.agent.bases
+			goals = [base for base in bases if base.color ==
+						self.agent.constants['team']]		
 		
-		num_of_elements = len(goals) + len(enemies) + len(obstacles)
-		vectors = [num_of_elements]
-		i = 0
+		vectors = []		
 		for goal in goals:
-			vectors[i] = get_attract_field(mytank, goal)
-			i+=1
+			vectors.append( self.get_attract_field(mytank, goal))
 		for obstacle in obstacles:
-			vectors[i] = get_tangent_field(mytank, obstacle)
-			i+=1
+			vectors.append(self.get_obstacle_tangent_field(mytank, obstacle))
 		for enemy in enemies:
-			vectors[i] = get_repulse_field(mytank, enemy)
-			i+=1
+			vectors.append(self.get_repulse_field(mytank, enemy))
+		
 		
 		desired_vec = Vector(0,0)
 		for vector in vectors:
-			desired_vec = add_vectors(desired_vec, vector);
+			desired_vec = self.add_vectors(desired_vec, vector);
 		
 		return desired_vec
 
@@ -213,7 +218,7 @@ class Vector(object):
 		
 	def set_x_and_y(self, dx, dy):
 		self.velocity = sqrt(dx*dx + dy*dy)
-		self.angle = atan2(dx/dy)
+		self.angle = atan2(dy,dx)
 	
 
 

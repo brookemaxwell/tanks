@@ -416,7 +416,7 @@ class BZRC:
         self.read_ack()
         shots = self.read_shots()
         self.read_ack()
-        shots = self.read_obstacles()
+        obstacles = self.read_obstacles()
 
         return (mytanks, othertanks, flags, shots, obstacles)
 
