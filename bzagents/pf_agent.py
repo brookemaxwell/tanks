@@ -36,6 +36,10 @@ class TankController(object):
 		#magnitudeDiff = desiredVector.velocity - curVector.velocity
 		#TODO how does this work with polar cooridantes or those returned by the potential_feild? Could we get strange behavoir with the angles overlapping
 		angleDiff = desiredVector.angle - curTankAngle
+		if abs(angleDiff + 2*pi) < abs(angleDiff):
+			angleDiff = angleDiff + 2*pi
+		elif abs(angleDiff - 2*pi) < abs(angleDiff):
+			angleDiff = angleDiff - 2*pi
 		#TODO is timeDiff an int? Will dividing by timeDiff work?
 		#commandVector.velocity = Kp(velocityDiff) + Kd( velocityDiff - self.speed_error )/timeDiff
 		#prevent a divide by zero error
