@@ -11,7 +11,15 @@ import time
 """returns the square of a number"""
 def sqr(x):  
 	return x * x 
-
+"""Make any angle be between +/- pi."""
+def normalize_angle(self, angle):
+	
+	angle -= 2 * math.pi * int (angle / (2 * math.pi))
+	if angle <= -math.pi:
+		angle += 2 * math.pi
+	elif angle > math.pi:
+		angle -= 2 * math.pi
+	return angle
 """ calculates the angle(in radians) between two points"""
 def get_angle(point1, point2):
 	return atan2((point2.y-point1.y), (point2.x-point1.x))
