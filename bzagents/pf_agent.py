@@ -29,8 +29,8 @@ class TankController(object):
 		
 		#intialize constants
 		#Kp creates tight turns
-		Kp = 0.75
-		Kd = 0.5
+		Kp = 0.9
+		Kd = 0.1
 		
 		
 		#magnitudeDiff = desiredVector.velocity - curVector.velocity
@@ -84,12 +84,13 @@ class Agent(object):
 
 	def tick(self, time_diff):
 		"""Some time has passed; decide what to do next."""
-		mytanks, othertanks, flags, shots, obstacles = self.bzrc.get_lots_o_stuff()
+		mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
 		self.mytanks = mytanks
 		self.othertanks = othertanks
 		self.flags = flags
 		self.shots = shots
 		self.obstacles = obstacles
+		self.bases = bases
 		self.enemies = [tank for tank in othertanks if tank.color !=
 						self.constants['team']]
 

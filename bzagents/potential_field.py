@@ -40,8 +40,8 @@ class PotentialField:
 	def get_repulse_field(self, mytank, obj):
 		
 		r = 1#goal radius
-		s = 100#field radius
-		b = 1#attraction factor
+		s = 50#field radius
+		b = .5#attraction factor
 		
 		d = get_center_distance(mytank, obj)
 		theta = get_angle(mytank, obj)
@@ -68,7 +68,7 @@ class PotentialField:
 		
 		r = 1#goal radius
 		s = 100#field radius
-		a = 1#attraction factor
+		a = 5#attraction factor
 		
 		d = get_center_distance(mytank, obj)
 		theta = get_angle(mytank, obj)
@@ -139,6 +139,7 @@ class PotentialField:
 	"""
 	def get_desired_accel_vector(self, mytank):
 		
+		team = self.agent.mytanks
 		enemies = self.agent.enemies
 		obstacles = self.agent.obstacles
 		flags = self.agent.flags
@@ -147,8 +148,11 @@ class PotentialField:
 						
 		if mytank.flag != "-":
 			bases = self.agent.bases
-			goals = [base for base in bases if base.color ==
-						self.agent.constants['team']]		
+			bases = [base for base in bases if base.color ==
+						self.agent.constants['team']]
+			if len(bases) == 1:
+				base = bases[0]
+				goals = [Point(((base.corner1_x + base.corner3_x)/2.0, (base.corner1_y + base.corner3_y)/2.0))]
 		
 		vectors = []		
 		
@@ -160,7 +164,10 @@ class PotentialField:
 		
 		for enemy in enemies:
 			vectors.append(self.get_repulse_field(mytank, enemy))
-		
+		'''
+		for tank in team:
+			vectors.append(self.get_repulse_field(mytank, team))
+		'''
 		
 		desired_vec = Vector(0,0)
 		for vector in vectors:

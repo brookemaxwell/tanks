@@ -42,13 +42,15 @@ class Agent(object):
 	#time diff is in seconds and is a float
     def tick(self, time_diff):
         """Some time has passed; decide what to do next."""
-        mytanks, othertanks, flags, shots = self.bzrc.get_lots_o_stuff()
+        mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
         self.mytanks = mytanks
         self.othertanks = othertanks
         self.flags = flags
         self.shots = shots
+        self.obstacles = obstacles
+        self.bases = bases
         self.enemies = [tank for tank in othertanks if tank.color !=
-                        self.constants['team']]
+						self.constants['team']]
 		#---------------------MAIN LOGIC AREA------------------------
         
         #In addition to this movement your really dumb agent should also shoot every 2 seconds (random between 1.5 and 2.5 seconds) or so.

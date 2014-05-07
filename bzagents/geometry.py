@@ -50,7 +50,7 @@ def distToSegmentSquared( tank, v, w):#(p, v, w):
 	if (t > 1):
 		return dist2(tank, w);
 	
-	return dist2(tank, Point(tuple(v.x + t * (w.x - v.x), v.y + t * (w.y - v.y))));
+	return dist2(tank, Point((v.x + t * (w.x - v.x), v.y + t * (w.y - v.y))));
 
 """ takes a a point and calculates the distance to a line segment (two points)"""
 def distance_to_line(tank, p1, p2):
