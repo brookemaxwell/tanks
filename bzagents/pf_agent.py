@@ -34,8 +34,10 @@ class Agent(object):
 	
 		pf = PotentialField(self)
 		
+		tank = mytanks[0]
 		print "before get desired acc vector"
-		print "speed: " + str(pf.get_desired_accel_vector(mytanks[0]).velocity) + " angle: " + str(pf.get_desired_accel_vector(mytanks[0]).angle)
+		desired_accel = pf.get_desired_accel_vector(tank)
+		desired_accel.print_out()
 		print "after get desired acc vector"		
 
 		#for tank in mytanks:
