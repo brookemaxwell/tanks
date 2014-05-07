@@ -7,6 +7,6 @@ python bzagents/pf_agent.py localhost 50100
 #python bots/compiled/blind.py agent1 localhost 50102 &
 #python bots/compiled/blind.py agent1 localhost 50103 &
 
-sleep 10
+sleep 30
 
 
