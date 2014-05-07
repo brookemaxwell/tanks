@@ -11,6 +11,34 @@ import time
 from bzrc import BZRC, Command
 from potential_field import PotentialField
 
+"""A controller for a single tank. """
+class TankController(object):
+	
+	def __init__(self, tank):
+		self.speed_error = 0
+		self.angle_error = 0
+		self.tank = tank
+		
+	#TODO update the variables so that they make sense/are consistent (ex. speed_error and veolocityDiff)
+	def getCommandFromVectors(self, curVector, desiredVector, timeDiff):
+		#intialize constants
+		Kp = 0.1
+		Kd = 0.5
+		commandVector = Vector()
+		velocityDiff = desiredVector.velocity - curVector.velocity
+		#TODO how does this work with polar cooridantes or those returned by the potential_feild? Could we get strange behavoir with the angles overlapping
+		angleDiff = desiredVector.angle - curVector.angle
+		#TODO is timeDiff an int? Will dividing by timeDiff work?
+		commandVector.velocity = Kp(velocityDiff) + Kd( velocityDiff - self.speed_error )/timeDiff
+		commandVector.angle = Kp(angleDiff) + Kd( angleDiff - self.angle_error )/timeDiff
+		speed_error = velocityDiff
+		angle_error = angleDiff
+		#TODO depending on how we get the angle and speed, convert these to a command
+		"""					 index, speed, angle, shoot"""
+		return Command(self.tank.index, 1, 0, True)
+		
+		
+		
 class Agent(object):
 	"""Class handles all command and control logic for a teams tanks."""
 
@@ -18,6 +46,8 @@ class Agent(object):
 		self.bzrc = bzrc
 		self.constants = self.bzrc.get_constants()
 		self.commands = []
+		self.tankControllers = []
+		self.oldTime = 0
 
 	def tick(self, time_diff):
 		"""Some time has passed; decide what to do next."""
@@ -31,22 +61,35 @@ class Agent(object):
 						self.constants['team']]
 
 		self.commands = []
-	
+		
+		#The tankControllers array assumes that tankController[1] will always correspond to mytanks[1]
+		#if not intialized, intialize the tankController array
+		if len(tankControllers) == 0:
+			for tank in mytanks:
+				tankControllers.append(TankController(tank))
+		#else update the tank variable in each tank controller
+		else:
+			for i in range (0, len(tankControllers)):
+				tankControllers[i].tank = mytanks[i]
+		
+		
 		pf = PotentialField(self)
+		
 		
 		print "before get desired acc vector"
 		print "speed: " + str(pf.get_desired_accel_vector(mytanks[0]).velocity) + " angle: " + str(pf.get_desired_accel_vector(mytanks[0]).angle)
 		print "after get desired acc vector"		
 
-		#for tank in mytanks:
-		#	self.commands.append(Command(1, 1, 0, True))
-			
-		"""
-		curVector = Vector(tank.vx, tank.vy)
-		desiredVector = potentialfield.getDesiredVector(tank)
-		cmd = controller.getCommandFromVectors(tank, curVector, desiredVector)
-		self.commands.append(cmd)
-		"""
+		
+		for tankController in tankControllers:
+			"""
+			self.commands.append(Command(1, 1, 0, True))
+			curVector = Vector(tank.vx, tank.vy)#TODO
+			desiredAccelVector = potentialfield.getDesiredVector(tank)
+			//handle acceraltion and angel changing vectors
+			cmd = tankController.getCommandFromVectors(curVector, desiredVector, time_diff)
+			self.commands.append(cmd)
+			"""
 
 		results = self.bzrc.do_commands(self.commands)
 
