@@ -117,15 +117,22 @@ class Agent(object):
 		#print "before get desired acc vector"
 		
 		#print "after get desired acc vector"		
-		
-		
+		'''
+		tankController = self.tankControllers[0]
+		tank = tankController.tank
+		desiredVector = pf.get_desired_accel_vector(tank)
+		desiredVector.print_out()
+		#time.sleep(1)
+		cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
+		self.commands.append(cmd)
+		'''
 		for tankController in self.tankControllers:
 			tank = tankController.tank
 			desiredVector = pf.get_desired_accel_vector(tank)
 			#print "tank "+ str(tank.index)  +"  desired speed: " + str(tankVector.magnitude) + " desired angle: " + str(tankVector.angle)
 			cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
 			self.commands.append(cmd)			
-			
+		
 			
 
 

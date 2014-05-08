@@ -37,11 +37,7 @@ class PotentialField:
 		return [d1, d2, d3, d4]
 
 	""" gets a repulsive vector: find distance to the enemy center, calculate angle then dx, dy. return a vector using dx, dy"""
-	def get_repulse_field(self, mytank, obj):
-		
-		r = 1#goal radius
-		s = 50#field radius
-		b = .5#attraction factor
+	def get_repulse_field(self, mytank, obj, r, s, b):
 		
 		d = get_center_distance(mytank, obj)
 		theta = get_angle(mytank, obj)
@@ -64,11 +60,7 @@ class PotentialField:
 		return vector
 
 	""" gets an attractive vector: find distance to the goal center, calculate angle then dx, dy. return a vector using dx, dy"""
-	def get_attract_field(self, mytank, obj):
-		
-		r = 1#goal radius
-		s = 100#field radius
-		a = 5#attraction factor
+	def get_attract_field(self, mytank, obj, r, s, a):
 		
 		d = get_center_distance(mytank, obj)
 		theta = get_angle(mytank, obj)
@@ -95,11 +87,7 @@ class PotentialField:
 	otherwise theta = the angle between the tank and the corner
 	make theta tangential, then calculate dx, dy as with repulsive fields
 	return a vector using dx, dy"""
-	def get_obstacle_tangent_field(self, mytank, obj):
-		
-		r = 1#goal radius
-		s = 10#field radius
-		b = 1#repulisve factor
+	def get_obstacle_tangent_field(self, mytank, obj, r, s, b):
 		
 		d_edges = self.__get_line_distances(mytank, obj)
 		d_points = self.__get_point_distances(mytank, obj)
@@ -107,20 +95,24 @@ class PotentialField:
 		d_close_edge = min(d_edges[0], d_edges[1], d_edges[2], d_edges[3])
 		d_close_point = min(d_points[0], d_points[1], d_points[2], d_points[3])
 		
-		theta = pi/2.0 #distance b/w line and point is perpendicular unless distance is to a corner
+		
+		theta = mytank.angle #distance b/w line and point is perpendicular unless distance is to a corner
 		if d_close_point == d_close_edge:
 			corner = d_points.index(d_close_point)
 			theta = get_angle(mytank, Point(obj[corner]))
 		
-		theta = theta + pi/2.0 #to make tangential
+		theta = theta - pi/2.0 #to make tangential
 		
 		dx = 0
 		dy = 0
+		print theta
 		
 		if d_close_edge < r:
+			print "too close: r="+str(r)+" d="+str(d_close_edge)
 			dx = -sign(cos(theta))*float('inf')
 			dy = -sign(sin(theta))*float('inf')
 		elif d_close_edge >= r and d_close_edge <= s+r:
+			print "in tangent range: r="+str(r)+" d="+str(d_close_edge)+" s="+str(s)
 			dx = -b * (s + r - d_close_edge) * cos(theta)
 			dy = -b * (s + r - d_close_edge) * sin(theta)
 			
@@ -139,35 +131,36 @@ class PotentialField:
 	"""
 	def get_desired_accel_vector(self, mytank):
 		
-		team = self.agent.mytanks
+		team = [tank for tank in self.agent.mytanks if tank.index !=
+						mytank.index]
 		enemies = self.agent.enemies
 		obstacles = self.agent.obstacles
-		flags = self.agent.flags
-		goals = [flag for flag in flags if flag.color !=
+		flags = [flag for flag in self.agent.flags if flag.color !=
 						self.agent.constants['team']]
+		goal = flags[(mytank.index) %len(flags) ]# pick one flag goal
 						
-		if mytank.flag != "-":
+		r = 1 #goal/obstacle radius
+		s = 100 #goal/obstacle field radius
+		a = 5 #attrctive force
+		b = 3 #repulsive force
+						
+		if mytank.flag != "-" or goal.poss_color == self.agent.constants['team']:
 			bases = self.agent.bases
 			bases = [base for base in bases if base.color ==
 						self.agent.constants['team']]
 			if len(bases) == 1:
 				base = bases[0]
-				goals = [Point(((base.corner1_x + base.corner3_x)/2.0, (base.corner1_y + base.corner3_y)/2.0))]
+				goal = Point(((base.corner1_x + base.corner3_x)/2.0, (base.corner1_y + base.corner3_y)/2.0))
 		
 		vectors = []		
 		
-		for goal in goals:
-			vectors.append( self.get_attract_field(mytank, goal))
-		
+		vectors.append( self.get_attract_field(mytank, goal, r, s, a))
 		for obstacle in obstacles:
-			vectors.append(self.get_obstacle_tangent_field(mytank, obstacle))
-		
-		for enemy in enemies:
-			vectors.append(self.get_repulse_field(mytank, enemy))
-		'''
+			vectors.append(self.get_obstacle_tangent_field(mytank, obstacle, r+2, s-25, a))	
 		for tank in team:
-			vectors.append(self.get_repulse_field(mytank, team))
-		'''
+			vectors.append(self.get_repulse_field(mytank, tank, 0, s/5.0, b))
+		for enemy in enemies:
+			vectors.append(self.get_repulse_field(mytank, enemy, r+4, s/5.0, a))
 		
 		desired_vec = Vector(0,0)
 		for vector in vectors:
