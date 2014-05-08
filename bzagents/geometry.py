@@ -55,6 +55,9 @@ def distToSegmentSquared( tank, v, w):#(p, v, w):
 """ takes a a point and calculates the distance to a line segment (two points)"""
 def distance_to_line(tank, p1, p2):
 	return sqrt(distToSegmentSquared(tank, p1, p2));
+	
+def distance_and_perp_angle_to_line(tank, p1, p2):
+	return (distance_to_line(tank, p1, p2), get_angle(p2, p1));
 
 """returns 1 for positive numbers, -1 for negative"""
 def sign(num):

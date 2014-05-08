@@ -8,7 +8,7 @@ import math
 from math import sqrt,atan2,cos,sin,pi
 import time
 import geometry
-from geometry import sqr, get_angle, get_distance, get_center_distance, distance_to_line, sign, Point, Vector, add_vectors
+from geometry import sqr, get_angle, get_distance, get_center_distance, distance_to_line, sign, Point, Vector, add_vectors, distance_and_perp_angle_to_line
 
 
 class PotentialField:
@@ -29,12 +29,12 @@ class PotentialField:
 	""" finds the four distances from a tank to a rectangle's four sides"""
 	def __get_line_distances(self, mytank, obstacle):
 		
-		d1 = distance_to_line(mytank, Point(obstacle[0]), Point(obstacle[1]))
-		d2 = distance_to_line(mytank, Point(obstacle[1]), Point(obstacle[2]))
-		d3 = distance_to_line(mytank, Point(obstacle[2]), Point(obstacle[3]))
-		d4 = distance_to_line(mytank, Point(obstacle[3]), Point(obstacle[0]))
+		d1, a1 = distance_and_perp_angle_to_line(mytank, Point(obstacle[0]), Point(obstacle[1]))
+		d2, a2 = distance_and_perp_angle_to_line(mytank, Point(obstacle[1]), Point(obstacle[2]))
+		d3, a3 = distance_and_perp_angle_to_line(mytank, Point(obstacle[2]), Point(obstacle[3]))
+		d4, a4 = distance_and_perp_angle_to_line(mytank, Point(obstacle[3]), Point(obstacle[0]))
 		
-		return [d1, d2, d3, d4]
+		return ([d1, d2, d3, d4],[a1, a2, a3, a4])
 
 	""" gets a repulsive vector: find distance to the enemy center, calculate angle then dx, dy. return a vector using dx, dy"""
 	def get_repulse_field(self, mytank, obj, r, s, b):
@@ -89,30 +89,26 @@ class PotentialField:
 	return a vector using dx, dy"""
 	def get_obstacle_tangent_field(self, mytank, obj, r, s, b):
 		
-		d_edges = self.__get_line_distances(mytank, obj)
+		d_edges, a_edges = self.__get_line_distances(mytank, obj)
 		d_points = self.__get_point_distances(mytank, obj)
 		
 		d_close_edge = min(d_edges[0], d_edges[1], d_edges[2], d_edges[3])
 		d_close_point = min(d_points[0], d_points[1], d_points[2], d_points[3])
 		
 		
-		theta = mytank.angle #distance b/w line and point is perpendicular unless distance is to a corner
+		theta = a_edges[d_edges.index(d_close_edge)] #distance b/w line and point is perpendicular unless distance is to a corner
 		if d_close_point == d_close_edge:
 			corner = d_points.index(d_close_point)
-			theta = get_angle(mytank, Point(obj[corner]))
-		
-		theta = theta - pi/2.0 #to make tangential
+			#theta = get_angle(mytank, Point(obj[corner]))
+			#theta = theta  pi/2.0 #to make tangential
 		
 		dx = 0
 		dy = 0
-		print theta
 		
 		if d_close_edge < r:
-			print "too close: r="+str(r)+" d="+str(d_close_edge)
 			dx = -sign(cos(theta))*float('inf')
 			dy = -sign(sin(theta))*float('inf')
 		elif d_close_edge >= r and d_close_edge <= s+r:
-			print "in tangent range: r="+str(r)+" d="+str(d_close_edge)+" s="+str(s)
 			dx = -b * (s + r - d_close_edge) * cos(theta)
 			dy = -b * (s + r - d_close_edge) * sin(theta)
 			
@@ -156,11 +152,11 @@ class PotentialField:
 		
 		vectors.append( self.get_attract_field(mytank, goal, r, s, a))
 		for obstacle in obstacles:
-			vectors.append(self.get_obstacle_tangent_field(mytank, obstacle, r+2, s-25, a))	
+			vectors.append(self.get_obstacle_tangent_field(mytank, obstacle, r+5, s-25, a+2))	
 		for tank in team:
-			vectors.append(self.get_repulse_field(mytank, tank, 0, s/5.0, b))
+			vectors.append(self.get_repulse_field(mytank, tank, r, s/5.0, a))
 		for enemy in enemies:
-			vectors.append(self.get_repulse_field(mytank, enemy, r+4, s/5.0, a))
+			vectors.append(self.get_repulse_field(mytank, enemy, r+4, s/5.0, a+2))
 		
 		desired_vec = Vector(0,0)
 		for vector in vectors:
