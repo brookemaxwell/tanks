@@ -150,9 +150,9 @@ class PotentialField:
 		
 		vectors = []		
 		
-		vectors.append( self.get_attract_field(mytank, goal, r, s, a))
+		vectors.append( self.get_attract_field(mytank, goal, r, s, a+4))
 		for obstacle in obstacles:
-			vectors.append(self.get_obstacle_tangent_field(mytank, obstacle, r+5, s-25, a+2))	
+			vectors.append(self.get_obstacle_tangent_field(mytank, obstacle, r+5, s-85, a-1))	
 		for tank in team:
 			vectors.append(self.get_repulse_field(mytank, tank, r, s/5.0, a))
 		for enemy in enemies:

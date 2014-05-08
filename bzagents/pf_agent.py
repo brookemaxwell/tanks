@@ -29,8 +29,8 @@ class TankController(object):
 		
 		#intialize constants
 		#Kp creates tight turns
-		Kp = 0.9
-		Kd = 0.1
+		Kp = 1.0
+		Kd = 0.0
 		
 		
 		#magnitudeDiff = desiredVector.velocity - curVector.velocity
@@ -113,33 +113,13 @@ class Agent(object):
 		
 		pf = PotentialField(self)
 		
-		
-		#print "before get desired acc vector"
-		
-		#print "after get desired acc vector"		
-		'''
-		tankController = self.tankControllers[0]
-		tank = tankController.tank
-		desiredVector = pf.get_desired_accel_vector(tank)
-		desiredVector.print_out()
-		#time.sleep(1)
-		cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
-		self.commands.append(cmd)
-		'''
 		for tankController in self.tankControllers:
 			tank = tankController.tank
 			desiredVector = pf.get_desired_accel_vector(tank)
-			#print "tank "+ str(tank.index)  +"  desired speed: " + str(tankVector.magnitude) + " desired angle: " + str(tankVector.angle)
 			cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
 			self.commands.append(cmd)			
-		
-			
-
 
 		results = self.bzrc.do_commands(self.commands)
-		#print "time diff: "+str(time_diff)
-		#if 1 < time_diff:
-		#	sys.exit(0)
 
 
 	def attack_enemies(self, tank):
