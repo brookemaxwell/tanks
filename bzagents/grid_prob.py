@@ -16,6 +16,9 @@ class GridProbability:
 
 	def __init__(self, agent):
 		self.agent = agent
+		self.prob_grid = [[.1 for i in range(800)] for j in range(800)]#initialize grid
+		self.prob_true_pos = .97;
+		self.prob_true_neg = .9;
 		
 	'''
 	P(observed = occupied | state = occupied) is approximated as true positive rate
@@ -26,21 +29,33 @@ class GridProbability:
 	
 	observed can be hit(1), miss(0), nodata(out of range...).
 	'''
-	def update_probability(prob_true_pos, prob_true_neg, observed, p_st):
+	def update_probabilities(occ_grid, x, y):
+		x += 400
+		y += 400
+		for i in range(len(occ_grid)):
+			for j in range(len(occ_grid[0])):
+				self.update_grid(occgrid[i,j], y+i, x+j)
+	
+	def update_grid(observed, x, y):
 		
 		#get the probabilities of true/false positives/negatives
-		p_ot_given_st = prob_true_pos
-		p_ot_given_sf = 1 - prob_true_pos
-		p_of_given_st = 1 - prob_true_neg
-		p_of_given_sf = prob_true_neg
+		p_ot_given_st = self.prob_true_pos
+		p_ot_given_sf = 1 - self.prob_true_pos
+		p_of_given_st = 1 - self.prob_true_neg
+		p_of_given_sf = self.prob_true_neg
+		
+		p_st = self.prob_grid[x,y]
 		
 		#p(si,j = occupied | oi,j) = p(oi,j | si,j = occupied)p(si,j = occupied) / p(oi,j)
-		if observed == 1:
+		#look into this...
+		if observed == 1.0:
 			p_ot = p_ot_given_st + p_ot_given_sf
 			p_st_given_ot = (p_ot_given_st * p_st)/p_ot
-			return p_st_given_ot
+			grid[x,y]= p_st_given_ot
 		else
 			p_of = p_of_given_st + p_of_given_sf
-			p_sf_given_of = (p_of_given_sf * (1.0-p_st))/p_of
-			return p_sf_given_of
+			p_st_given_of = (p_of_given_st * (p_st))/p_of
+			grid[x,y]= p_st_given_of
+		
+		return grid[x,y]
 
