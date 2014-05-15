@@ -7,6 +7,7 @@
 import sys
 import math
 import time
+import grid_drawer
 
 from bzrc import BZRC, Command
 from potential_field import PotentialField
@@ -85,6 +86,8 @@ class Agent(object):
 		self.commands = []
 		self.tankControllers = []
 		self.oldTime = 0
+		grid_drawer.init_window(800,800)
+		
 
 	def tick(self, time_diff):
 		"""Some time has passed; decide what to do next."""
