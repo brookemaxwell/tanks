@@ -9,6 +9,8 @@ import math
 import time
 import grid_drawer
 
+
+from grid_prob import GridProbability
 from bzrc_occ import BZRC, Command
 from potential_field_occ import PotentialField
 from geometry import Vector
@@ -86,6 +88,7 @@ class Agent(object):
 		self.commands = []
 		self.tankControllers = []
 		self.oldTime = 0
+		self.grid = GridProbability()
 		grid_drawer.init_window(800,800)
 		
 
@@ -115,18 +118,26 @@ class Agent(object):
 		
 		pf = PotentialField(self)
 		
+		self.obstacles = self.grid.getObstacles()
+		
 		for tankController in self.tankControllers:
 			tank = tankController.tank
 			
-			#get occ grid
-			self.bzrc.sendline('occgrid '+ str(tank.index))
-			self.bzrc.read_ack()
-			pos,grid = self.bzrc.read_occgrid()
-						
+			#update occ grid
+			pos, curGrid = self.bzrc.get_occgrid(tank.index)
+			self.grid.update_probabilities(curGrid, pos[0], pos[1])
+			
+			
+			#give tank directions
 			desiredVector = pf.get_desired_accel_vector(tank)
 			cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
-			self.commands.append(cmd)			
-
+			self.commands.append(cmd)
+			#REMOVE ME
+			break
+		
+		print self.grid.prob_grid				
+		grid_drawer.update_grid(self.grid.prob_grid)
+		grid_drawer.draw_grid()
 		results = self.bzrc.do_commands(self.commands)
 
 
