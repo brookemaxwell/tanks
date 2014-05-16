@@ -125,8 +125,10 @@ class Agent(object):
 			
 			#update occ grid
 			pos, curGrid = self.bzrc.get_occgrid(tank.index)
-			self.grid.update_probabilities(curGrid, pos[0], pos[1])
 			
+			self.grid.update_probabilities(curGrid, pos[0], pos[1])
+			#print "tank position:"+str(tank.x) +", "+ str(tank.y)
+			#print "pos: " + str(pos)
 			
 			#give tank directions
 			desiredVector = pf.get_desired_accel_vector(tank)
@@ -135,7 +137,7 @@ class Agent(object):
 			#REMOVE ME
 			break
 		
-		print self.grid.prob_grid				
+		#print self.grid.prob_grid				
 		grid_drawer.update_grid(self.grid.prob_grid)
 		grid_drawer.draw_grid()
 		results = self.bzrc.do_commands(self.commands)
@@ -199,6 +201,7 @@ def main():
 		while True:
 			time_diff = time.time() - prev_time
 			agent.tick(time_diff)
+		
 	except KeyboardInterrupt:
 		print "Exiting due to keyboard interrupt."
 		bzrc.close()

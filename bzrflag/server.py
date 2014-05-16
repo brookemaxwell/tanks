@@ -66,7 +66,6 @@ class Server(asyncore.dispatcher):
 
         # Disable Nagle's algorithm because this is a latency-sensitive
         # low-bandwidth application.
-
         self.bind(addr)
         self.listen(constants.BACKLOG)
 

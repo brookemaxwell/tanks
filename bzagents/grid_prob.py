@@ -11,63 +11,53 @@ import geometry
 import numpy
 from geometry import sqr, get_angle, get_distance, get_center_distance, distance_to_line, sign, Point, Vector, add_vectors, distance_and_perp_angle_to_line
 
-
-
 class GridProbability:
 	"""Class to determine obstacle locations."""
 
 	def __init__(self):
 		temp_grid = [[.1 for i in range(800)] for j in range(800)]#initialize grid
 		self.prob_grid = numpy.array(temp_grid)
-		self.prob_true_pos = .97;
-		self.prob_true_neg = .9;
+		self.p_ot_given_st = .97;#prob true pos
+		self.p_of_given_sf = .9;#prob true neg
 		
-	'''
-	P(observed = occupied | state = occupied) is approximated as true positive rate
-	P(observed = not occupied | state = occupied) is approximated as false negative rate
-
-	P(observed = occupied | state = not occupied) is approximated as false positive rate
-	P(observed = not occupied | state = not occupied) is approximated as true negative rate
+		self.p_ot_given_sf = 1 - self.p_of_given_sf#false positive
+		self.p_of_given_st = 1 - self.p_ot_given_st#false negative
 	
-	observed can be hit(1), miss(0), nodata(out of range...).
-	'''
+	#goes through the occgrid and updates each world coordinate with new probability
 	def update_probabilities(self, occ_grid, x, y):	
-		#print "x,y: " + str(x)+", "+ str(y)
-		
-		for i in range(len(occ_grid)):
-			for j in range(len(occ_grid[0])):
-				x = x+j
-				y = y+i
-				if x > 799:
-					x = 799
-				if y > 799:
-					y = 799
-				
-				self.update_grid(occ_grid[i][j], x, y)
+			
+		for col in range(len(occ_grid)):
+			for row in range(len(occ_grid[0])):
+				_row = x+row#+400
+				_col = y+col#+400
+				self.update_grid(occ_grid[col][row], _row, _col)
 	
+	#p(ot) = p(ot | st)p(st) + p(ot | sf)p(sf)
+	def get_prob_observed_true(self, p_st):
+		p_o_st = self.p_ot_given_st * p_st
+		p_o_sf = self.p_ot_given_sf * (1.0-p_st)
+		return p_o_st + p_o_sf
+	
+	#p(of) = p(of | st)p(st) + p(of | sf)p(sf)
+	def get_prob_observed_false(self, p_st):
+		p_o_st = self.p_of_given_st * p_st
+		p_o_sf = self.p_of_given_sf * (1.0-p_st)
+		return p_o_st + p_o_sf
+		
 	def update_grid(self, observed, x, y):
 		
-		#get the probabilities of true/false positives/negatives
-		p_ot_given_st = self.prob_true_pos
-		p_ot_given_sf = 1 - self.prob_true_pos
-		p_of_given_st = 1 - self.prob_true_neg
-		p_of_given_sf = self.prob_true_neg
+		p_st = self.prob_grid[x,y]# current probability of occupied=true
 		
-		
-		p_st = self.prob_grid[x,y]
-		
-		#p(si,j = occupied | oi,j) = p(oi,j | si,j = occupied)p(si,j = occupied) / p(oi,j)
-		#look into this...
+		#update the grid with probability of actually being occupied, given observation
 		if observed == 1.0:
-			p_ot = p_ot_given_st + p_ot_given_sf
-			p_st_given_ot = (p_ot_given_st * p_st)/p_ot
+			p_ot = self.get_prob_observed_true(p_st);
+			p_st_given_ot = (self.p_ot_given_st * p_st)/p_ot
 			self.prob_grid[x,y]= p_st_given_ot
 		else:
-			p_of = p_of_given_st + p_of_given_sf
-			p_st_given_of = (p_of_given_st * (p_st))/p_of
+			p_of = self.get_prob_observed_false(p_st);
+			p_st_given_of = (self.p_of_given_st * (p_st))/p_of
 			self.prob_grid[x,y]= p_st_given_of
-		
-		return self.prob_grid[x,y]
+		#return self.prob_grid[x,y]
 		
 	def getObstacles(self):
 		obstacles = []
