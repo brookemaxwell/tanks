@@ -120,14 +120,16 @@ class Agent(object):
 		
 		self.obstacles = self.grid.getObstacles()
 		
-		for tankController in self.tankControllers:
+		for i in range(len(self.tankControllers) - 5):
+			tankController = self.tankControllers[i]
+			#for tankController in self.tankControllers:
 			tank = tankController.tank
 			
 			#update occ grid
 			pos, curGrid = self.bzrc.get_occgrid(tank.index)
 			
 			self.grid.update_probabilities(curGrid, pos[0], pos[1])
-			#print "tank position:"+str(tank.x) +", "+ str(tank.y)
+			#print "tank: x="+str(tank.x) +", y="+ str(tank.y)
 			#print "pos: " + str(pos)
 			
 			#give tank directions
@@ -135,7 +137,7 @@ class Agent(object):
 			cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
 			self.commands.append(cmd)
 			#REMOVE ME
-			break
+			#break
 		
 		#print self.grid.prob_grid				
 		grid_drawer.update_grid(self.grid.prob_grid)
