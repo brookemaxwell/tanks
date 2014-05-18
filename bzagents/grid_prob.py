@@ -5,7 +5,9 @@
 from __future__ import division
 
 import math
+import random
 from math import sqrt,atan2,cos,sin,pi
+from bzrc_occ import Answer
 import time
 import geometry
 import numpy
@@ -94,6 +96,59 @@ class GridProbability:
 		
 	def getObstacles(self):
 		obstacles = []
-		#make me!
+		for x in xrange(-399, 399, 10):
+			for y in xrange(-399, 399, 10):
+				if .95 < self.prob_grid[x+400][y+400]:
+					obstacle = Answer()
+					obstacle.x = x
+					obstacle.y = y
+					obstacles.append(obstacle)
+		
+		
+		#print "obstacle count:"+str(len(obstacles))
 		return obstacles
+
+	
+	""" Method which returns the nearest unknown part of the graph. This is used as a goal
+	    The returned value needs to have an x and a y value so we use the answer class"""
+	def getNearestUnknownPoint(self, tank, lastTargets):
+		#print "x and y is ("+ str(xOrg) +", "+str(yOrg)+ ")"
+		if hasattr(lastTargets[tank.index], 'x'):
+			return lastTargets[tank.index]
+		
+		xOrg = tank.x
+		yOrg = tank.y
+		answer = Answer()
+		answer.x = -1
+		answer.y = -1
+		while answer.x == -1 and answer.y == -1:
+			x = random.randint(-398, 398)
+			y = random.randint(-398, 398)
+			if self.unobserved(x,y):
+				#technically dist is sqrt of this, but the dist is used for compare and all comparasion will use it so we don't need it
+				#if self.uniqueTarget(tank, lastTargets,x,y):
+				answer.x = x
+				answer.y = y
+				break
+				
+		
+		print "tank at ("+ str(xOrg) +", "+str(yOrg)+ ") going to ("+ str(answer.x) +", "+str(answer.y)+")"
+		lastTargets[tank.index] = answer		
+				
+		return answer
+		
+	def uniqueTarget(self, tank, lastTargets,x,y):
+		for i in range(len(lastTargets)):
+			if i == tank.index:
+				continue
+			if hasattr(lastTargets[i], 'x'):
+				if lastTargets[i].x == x and lastTargets[i].y == y:
+					return False
+		return True
+	
+	def unobserved(self, x ,y):
+		topRow = self.prob_grid[x-1][y+1] and self.prob_grid[x][y+1] == UNOBSERVED and self.prob_grid[x+1][y+1] == UNOBSERVED 
+		middleRow = self.prob_grid[x-1][y] == UNOBSERVED and self.prob_grid[x][y] == UNOBSERVED and self.prob_grid[x+1][y] == UNOBSERVED 
+		bottomRow = self.prob_grid[x-1][y-1] == UNOBSERVED and self.prob_grid[x][y-1] == UNOBSERVED and self.prob_grid[x+1][y-1] == UNOBSERVED
+		return topRow and middleRow and bottomRow 
 

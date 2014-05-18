@@ -15,7 +15,7 @@ def convertMagVectorToDirectionalVeclocityVector(vector):
 	
 	vx = cos(theta)* hypot
 	
-	return [vx/20, vy/20]
+	return [vx/50, vy/50]
 		
 	
 
@@ -45,10 +45,10 @@ def printVectors(agent):
 	
 	tank = agent.mytanks[2]
 	
-	for x in range(-40,40):
-		for y in range(-40,40):
-			xCoor = x*10
-			yCoor = y*10
+	for x in range(-20,20):
+		for y in range(-20,20):
+			xCoor = x*20
+			yCoor = y*20
 							
 			tank.x = xCoor
 			tank.y = yCoor						

@@ -11,10 +11,11 @@ import grid_drawer
 
 
 from grid_prob import GridProbability
-from bzrc_occ import BZRC, Command
+from bzrc_occ import BZRC, Command, Answer
 from potential_field_occ import PotentialField
 from geometry import Vector
 from math import atan2, pi
+import plotter
 
 """A controller for a single tank. """
 class TankController(object):
@@ -32,12 +33,10 @@ class TankController(object):
 		
 		#intialize constants
 		#Kp creates tight turns
-		Kp = 1.0
-		Kd = 0.0
+		Kp = .8
+		Kd = 0.5
 		
 		
-		#magnitudeDiff = desiredVector.velocity - curVector.velocity
-		#TODO how does this work with polar cooridantes or those returned by the potential_feild? Could we get strange behavoir with the angles overlapping
 		angleDiff = desiredVector.angle - curTankAngle
 		if abs(angleDiff + 2*pi) < abs(angleDiff):
 			angleDiff = angleDiff + 2*pi
@@ -59,7 +58,7 @@ class TankController(object):
 			angleVel = -1
 		
 		"""					 index, speed, angle, shoot"""
-		return Command(self.tank.index, 1, angleVel, True)
+		return Command(self.tank.index, .7, angleVel, True)
 		
 	"""Returns the tanks direction of movment in polar coordinates. It uses the  tank x and y velocity to do so"""	
 	def getCurrentDirectionInPolar(self):
@@ -88,6 +87,11 @@ class Agent(object):
 		self.commands = []
 		self.tankControllers = []
 		self.oldTime = 0
+		#create an array so that no tanks get the same cooridnate to go to, used after 130 seconds
+		#There is a sexy python sytanx for these next two lines no?
+		self.lastTargets = []
+		for i in range(10):
+			self.lastTargets.append(Answer())
 		self.grid = GridProbability()
 		grid_drawer.init_window(800,800)
 		
@@ -120,7 +124,9 @@ class Agent(object):
 		
 		self.obstacles = self.grid.getObstacles()
 		
-		for i in range(len(self.tankControllers) - 5):
+		
+		
+		for i in range(len(self.tankControllers)):
 			tankController = self.tankControllers[i]
 			#for tankController in self.tankControllers:
 			tank = tankController.tank
@@ -129,11 +135,9 @@ class Agent(object):
 			pos, curGrid = self.bzrc.get_occgrid(tank.index)
 			
 			self.grid.update_probabilities(curGrid, pos[0], pos[1])
-			#print "tank: x="+str(tank.x) +", y="+ str(tank.y)
-			#print "pos: " + str(pos)
 			
 			#give tank directions
-			desiredVector = pf.get_desired_accel_vector(tank)
+			desiredVector = pf.get_desired_accel_vector(tank, time_diff)
 			cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
 			self.commands.append(cmd)
 			#REMOVE ME
@@ -178,6 +182,34 @@ class Agent(object):
 		elif angle > math.pi:
 			angle -= 2 * math.pi
 		return angle
+
+
+
+	def getTargetPoint(self, tank, time_diff):
+		answer = Answer()
+		#assign each tank a row
+		yCoorAssigned = tank.index*80-399
+		answer.y = yCoorAssigned
+		
+		#for the first twenty five seconds, just get tanks to their points
+		if time_diff < 25:
+			answer.x = -399
+		#for every ten seconds, move their goal over 100 pixels
+		elif 25 < time_diff and time_diff < 130:
+			phase = (time_diff-20)/10
+			targetX = phase*100 -399
+			answer.x = targetX
+		#by this point, the tanks have crossed the grid, now send them to clean some unscanned spots up
+		else:
+			#every 40 seconds get a new target
+			if (time_diff-130) % 40 < 1:
+				self.lastTargets = []
+				for i in range(10):
+					self.lastTargets.append(Answer())
+			answer = self.grid.getNearestUnknownPoint(tank, self.lastTargets)
+			
+			
+		return answer		
 
 
 def main():

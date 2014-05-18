@@ -125,41 +125,36 @@ class PotentialField:
 	(goals are either flags or the agent's base)
 	add all the potential vectors to find the desired vector, return it
 	"""
-	def get_desired_accel_vector(self, mytank):
+	def get_desired_accel_vector(self, mytank, time_diff):
 		
 		team = [tank for tank in self.agent.mytanks if tank.index !=
 						mytank.index]
-		enemies = self.agent.enemies
-		#obstacles = self.agent.obstacles
-		flags = [flag for flag in self.agent.flags if flag.color !=
-						self.agent.constants['team']]
-		goal = flags[(mytank.index) %len(flags) ]# pick one flag goal
+		
+		goal = self.agent.getTargetPoint(mytank, time_diff)
+		print "target point: ("+ str(goal.x) +", "+ str(goal.y)+")       time diff: "+ str(time_diff)
 						
 		r = 1 #goal/obstacle radius
 		s = 100 #goal/obstacle field radius
 		a = 5 #attrctive force
 		b = 3 #repulsive force
-						
-		if mytank.flag != "-" or goal.poss_color == self.agent.constants['team']:
-			bases = self.agent.bases
-			bases = [base for base in bases if base.color ==
-						self.agent.constants['team']]
-			if len(bases) == 1:
-				base = bases[0]
-				goal = Point(((base.corner1_x + base.corner3_x)/2.0, (base.corner1_y + base.corner3_y)/2.0))
-		
+								
 		vectors = []		
 		
 		vectors.append( self.get_attract_field(mytank, goal, r, s, a+4))
+		
+		obstacles = self.agent.grid.getObstacles()
+		
 		#for obstacle in obstacles:
 		#	vectors.append(self.get_obstacle_tangent_field(mytank, obstacle, r+5, s-85, a-1))	
 		for tank in team:
-			vectors.append(self.get_repulse_field(mytank, tank, r, s/5.0, a))
+			vectors.append(self.get_repulse_field(mytank, tank, r, s/10.0, b))
+		"""
 		for enemy in enemies:
 			vectors.append(self.get_repulse_field(mytank, enemy, r+4, s/5.0, a+2))
-		
+		"""
 		desired_vec = Vector(0,0)
 		for vector in vectors:
 			desired_vec = add_vectors(desired_vec, vector);
+		#print "desiredVector. angle = "+ str(desired_vec.angle)
 		
 		return desired_vec
