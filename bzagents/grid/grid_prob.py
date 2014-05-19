@@ -103,6 +103,48 @@ class GridProbability:
 		obstacle.append((col, row))
 		obstacle.append((col, row))
 		self.obstacles.append(obstacle)
+		
+	def __box_contains(self, box, row, col):
+		tl = box[0]
+		tr = box[1]
+		br = box[2]
+		bl = box[3]
+		if col >= tl[0] and col <= tr[0]: 
+			if(row <= tl[1] and row >= bl[1]):
+				return True
+		return False
+						
+		
+	def __extend_above(self, tl, tr, row, col):
+		if(row < tl[1] + 10):
+			tl = (tl[0], row)#tl[1] = row
+			tr = (tr[0], row)#tr[1] = row
+			return tl, tr, True
+						
+		return tl, tr, False
+		
+	def __extend_below(self, bl, br, row, col):
+		if(row > bl[1] - 10):
+			bl = (bl[0], row)#tl[1] = row
+			br = (br[0], row)#tr[1] = row
+			return bl, br, True
+		return bl, br, False
+	
+	def __extend_left(self, tl, bl, row, col):
+		if col > tl[0] - 10:
+			tl = (col, tl[1])#tl[0] = col
+			bl = (col, bl[1])#tr[0] = col
+			return tl, bl, True
+		return tl, bl, False
+			
+			
+	def __extend_right(self, tr, br, row, col):
+		if col < tr[0] + 10:
+			tr = (col, tr[1])#tl[0] = col
+			br = (col, br[1])#tr[0] = col
+			return tr, br, True
+		return tr, br, False
+	
 	
 	def update_obstacles(self, grid_row, grid_col):
 		obs = self.obstacles
@@ -110,6 +152,7 @@ class GridProbability:
 		row = grid_row - int(len(self.prob_grid) / 2)
 		col = grid_col - int(len(self.prob_grid[0]) / 2)
 		
+		obs_found = False
 		if len(obs) == 0: 
 			self.new_obstacle(row, col)
 			return
@@ -120,76 +163,28 @@ class GridProbability:
 				tr = obstacle[1]
 				br = obstacle[2]
 				bl = obstacle[3]
+							
+				if self.__box_contains(obstacle, row, col):
+					print "contained"
+					return
 				
-				print obstacle
-				print "row ="+str(row) + ", col="+str(col)
-				
-				if col >= tl[0] and col <= tr[0]: 
-					if(row <= tl[1] and row >= bl[1]):
-						return; #between existing
-					#elif row > tl[1] + 5 or row < bl[1] - 5:
-					#	self.new_obstacle(row, col)
-					elif row > tl[1]:
-						tl = (tl[0], row)#tl[1] = row
-						tr = (tr[0], row)#tr[1] = row
-					elif row < bl[1]:
-						bl = (bl[0], row)#bl[1] = row
-						br = (br[0], row)#br[1] = row
-				#elif col > tl[0] + 5 or col < tr[0] - 5:
-				#	self.new_obstacle(row, col)
-				elif col > tl[0]:
-					tl = (col, tl[1])#tl[0] = col
-					tr = (col, tr[1])#tr[0] = col
-				elif col < tr[0]:
-					bl = (col, bl[1])#bl[0] = col
-					br = (col, br[1])#br[0] = col
-					
-						
-			obstacle[0] = tl	
-			obstacle[1] = tr	
-			obstacle[2] = br	
-			obstacle[3] = bl
-			self.obstacles[i] = obstacle
-		
+				tl, tr, found = self.__extend_above(tl, tr, row, col)
+				bl, br, found = self.__extend_below(bl, br, row, col)
+				tl, bl, found = self.__extend_left(tl, bl, row, col)
+				tr, br, found = self.__extend_right(tr, br, row, col)
+										
+				obstacle[0] = tl	
+				obstacle[1] = tr	
+				obstacle[2] = br	
+				obstacle[3] = bl
+				self.obstacles[i] = obstacle
+
+			if not found:
+				self.new_obstacle(row, col)
+			if len(self.obstacles) > 0: print "obstacle count:"+str(len(self.obstacles))
 		
 	
 	def getObstacles(self):
-		obstacles = []
-		'''for x in xrange(-399, 399, 10):
-			for y in xrange(-399, 399, 10):
-				if 1 == self.prob_grid[x+400][y+400]:
-					obstacle = Answer()
-					obstacle.x = x
-					obstacle.y = y
-					obstacles.append(obstacle)
-		'''
-		'''_world_row_min = -int(len(self.prob_grid) / 2) + 1
-		_world_row_max = int(len(self.prob_grid) / 2) - 1
-		_world_col_min = -int(len(self.prob_grid[0]) / 2) + 1
-		_world_col_max = int(len(self.prob_grid[0]) / 2) - 1
-		
-		rows = []
-		for row in xrange(_world_row_min, _world_row_max, 1):
-			col_min = _world_col_min -1
-			col_max = _world_col_min -1
-			for col in xrange(_world_col_min, _world_col_max, 1):
-				obs = self.prob_grid[row + 400][col + 400]
-				if obs == 1.0:
-					if self.prob_grid[row + 400][col + 400 - 1] == 0:
-						col_min = col
-						col_max = col
-					elif self.prob_grid[row + 400][col + 400 + 1] == 0:
-						col_max = col
-						rows.append((row, col_min, col_max))
-						#col_min = col
-						
-		#print len(rows)
-		if len(rows) > 0:
-			print rows[0]
-		'''				
-			
-		if len(self.obstacles) > 0:
-			print "obstacle count:"+str(len(self.obstacles))
 		return self.obstacles
 	
 	""" Method which returns the nearest unknown part of the graph. This is used as a goal
@@ -231,7 +226,7 @@ class GridProbability:
 	def unobserved(self, orgX ,orgY):
 		x= orgX + 400
 		y= orgY + 400
-		topRow = self.prob_grid[x-1][y+1] and self.prob_grid[x][y+1] == UNOBSERVED and self.prob_grid[x+1][y+1] == UNOBSERVED 
+		topRow = self.prob_grid[x-1][y+1] and self.prob_grid[x][y+1] not == UNOBSERVED and self.prob_grid[x+1][y+1] == UNOBSERVED 
 		middleRow = self.prob_grid[x-1][y] == UNOBSERVED and self.prob_grid[x][y] == UNOBSERVED and self.prob_grid[x+1][y] == UNOBSERVED 
 		bottomRow = self.prob_grid[x-1][y-1] == UNOBSERVED and self.prob_grid[x][y-1] == UNOBSERVED and self.prob_grid[x+1][y-1] == UNOBSERVED
 		return topRow and middleRow and bottomRow 
