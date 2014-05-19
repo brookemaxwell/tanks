@@ -146,7 +146,9 @@ class GridProbability:
 					return False
 		return True
 	
-	def unobserved(self, x ,y):
+	def unobserved(self, orgX ,orgY):
+		x= orgX + 400
+		y= orgY + 400
 		topRow = self.prob_grid[x-1][y+1] and self.prob_grid[x][y+1] == UNOBSERVED and self.prob_grid[x+1][y+1] == UNOBSERVED 
 		middleRow = self.prob_grid[x-1][y] == UNOBSERVED and self.prob_grid[x][y] == UNOBSERVED and self.prob_grid[x+1][y] == UNOBSERVED 
 		bottomRow = self.prob_grid[x-1][y-1] == UNOBSERVED and self.prob_grid[x][y-1] == UNOBSERVED and self.prob_grid[x+1][y-1] == UNOBSERVED
