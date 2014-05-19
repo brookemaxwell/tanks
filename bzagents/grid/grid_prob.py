@@ -26,6 +26,7 @@ class GridProbability:
 		
 		self.p_ot_given_sf = 1 - self.p_of_given_sf#false positive
 		self.p_of_given_st = 1 - self.p_ot_given_st#false negative
+		self.obstacles = []
 	
 	'''
 	goes through the occgrid and updates each world coordinate with new probability
@@ -83,8 +84,9 @@ class GridProbability:
 			p_ot = self.get_prob_observed_true(p_st);
 			p_st_given_ot = (self.p_ot_given_st * p_st)/p_ot
 			
-			if p_st_given_ot > .999:
+			if p_st_given_ot > .9995:
 				p_st_given_ot = 1
+				self.update_obstacles(r, c)
 			
 			self.prob_grid[r,c]= p_st_given_ot
 		else:
@@ -93,21 +95,102 @@ class GridProbability:
 			if p_st_given_of < .0001:
 				p_st_given_of = 0
 			self.prob_grid[r,c]= p_st_given_of
+	
+	def new_obstacle(self, row, col):
+		obstacle = []
+		obstacle.append((col, row))
+		obstacle.append((col, row))
+		obstacle.append((col, row))
+		obstacle.append((col, row))
+		self.obstacles.append(obstacle)
+	
+	def update_obstacles(self, grid_row, grid_col):
+		obs = self.obstacles
 		
+		row = grid_row - int(len(self.prob_grid) / 2)
+		col = grid_col - int(len(self.prob_grid[0]) / 2)
+		
+		if len(obs) == 0: 
+			self.new_obstacle(row, col)
+			return
+		else:
+			for i in range(len(obs)):
+				obstacle = obs[i]
+				tl = obstacle[0]
+				tr = obstacle[1]
+				br = obstacle[2]
+				bl = obstacle[3]
+				
+				print obstacle
+				print "row ="+str(row) + ", col="+str(col)
+				
+				if col >= tl[0] and col <= tr[0]: 
+					if(row <= tl[1] and row >= bl[1]):
+						return; #between existing
+					#elif row > tl[1] + 5 or row < bl[1] - 5:
+					#	self.new_obstacle(row, col)
+					elif row > tl[1]:
+						tl = (tl[0], row)#tl[1] = row
+						tr = (tr[0], row)#tr[1] = row
+					elif row < bl[1]:
+						bl = (bl[0], row)#bl[1] = row
+						br = (br[0], row)#br[1] = row
+				#elif col > tl[0] + 5 or col < tr[0] - 5:
+				#	self.new_obstacle(row, col)
+				elif col > tl[0]:
+					tl = (col, tl[1])#tl[0] = col
+					tr = (col, tr[1])#tr[0] = col
+				elif col < tr[0]:
+					bl = (col, bl[1])#bl[0] = col
+					br = (col, br[1])#br[0] = col
+					
+						
+			obstacle[0] = tl	
+			obstacle[1] = tr	
+			obstacle[2] = br	
+			obstacle[3] = bl
+			self.obstacles[i] = obstacle
+		
+		
+	
 	def getObstacles(self):
 		obstacles = []
-		for x in xrange(-399, 399, 10):
+		'''for x in xrange(-399, 399, 10):
 			for y in xrange(-399, 399, 10):
-				if .95 < self.prob_grid[x+400][y+400]:
+				if 1 == self.prob_grid[x+400][y+400]:
 					obstacle = Answer()
 					obstacle.x = x
 					obstacle.y = y
 					obstacles.append(obstacle)
+		'''
+		'''_world_row_min = -int(len(self.prob_grid) / 2) + 1
+		_world_row_max = int(len(self.prob_grid) / 2) - 1
+		_world_col_min = -int(len(self.prob_grid[0]) / 2) + 1
+		_world_col_max = int(len(self.prob_grid[0]) / 2) - 1
 		
-		
-		#print "obstacle count:"+str(len(obstacles))
-		return obstacles
-
+		rows = []
+		for row in xrange(_world_row_min, _world_row_max, 1):
+			col_min = _world_col_min -1
+			col_max = _world_col_min -1
+			for col in xrange(_world_col_min, _world_col_max, 1):
+				obs = self.prob_grid[row + 400][col + 400]
+				if obs == 1.0:
+					if self.prob_grid[row + 400][col + 400 - 1] == 0:
+						col_min = col
+						col_max = col
+					elif self.prob_grid[row + 400][col + 400 + 1] == 0:
+						col_max = col
+						rows.append((row, col_min, col_max))
+						#col_min = col
+						
+		#print len(rows)
+		if len(rows) > 0:
+			print rows[0]
+		'''				
+			
+		if len(self.obstacles) > 0:
+			print "obstacle count:"+str(len(self.obstacles))
+		return self.obstacles
 	
 	""" Method which returns the nearest unknown part of the graph. This is used as a goal
 	    The returned value needs to have an x and a y value so we use the answer class"""
@@ -125,10 +208,9 @@ class GridProbability:
 			x = random.randint(-398, 398)
 			y = random.randint(-398, 398)
 			if self.unobserved(x,y):
-				#technically dist is sqrt of this, but the dist is used for compare and all comparasion will use it so we don't need it
-				#if self.uniqueTarget(tank, lastTargets,x,y):
-				answer.x = x
-				answer.y = y
+				#switch x, y for row, col format
+				answer.x = y
+				answer.y = x
 				break
 				
 		
