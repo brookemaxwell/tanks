@@ -95,6 +95,7 @@ class GridProbability:
 			if p_st_given_of < .0001:
 				p_st_given_of = 0
 			self.prob_grid[r,c]= p_st_given_of
+			
 	
 	def new_obstacle(self, row, col):
 		obstacle = []
@@ -181,7 +182,7 @@ class GridProbability:
 
 			if not found:
 				self.new_obstacle(row, col)
-			if len(self.obstacles) > 0: print "obstacle count:"+str(len(self.obstacles))
+			#if len(self.obstacles) > 0: print "obstacle count:"+str(len(self.obstacles))
 		
 	
 	def getObstacles(self):
@@ -209,7 +210,7 @@ class GridProbability:
 				break
 				
 		
-		print "tank at ("+ str(xOrg) +", "+str(yOrg)+ ") going to ("+ str(answer.x) +", "+str(answer.y)+")"
+		#print "tank at ("+ str(xOrg) +", "+str(yOrg)+ ") going to ("+ str(answer.x) +", "+str(answer.y)+")"
 		lastTargets[tank.index] = answer		
 				
 		return answer
@@ -226,7 +227,7 @@ class GridProbability:
 	def unobserved(self, orgX ,orgY):
 		x= orgX + 400
 		y= orgY + 400
-		topRow = self.prob_grid[x-1][y+1] and self.prob_grid[x][y+1] not == UNOBSERVED and self.prob_grid[x+1][y+1] == UNOBSERVED 
+		topRow = self.prob_grid[x-1][y+1] and self.prob_grid[x][y+1] == UNOBSERVED and self.prob_grid[x+1][y+1] == UNOBSERVED 
 		middleRow = self.prob_grid[x-1][y] == UNOBSERVED and self.prob_grid[x][y] == UNOBSERVED and self.prob_grid[x+1][y] == UNOBSERVED 
 		bottomRow = self.prob_grid[x-1][y-1] == UNOBSERVED and self.prob_grid[x][y-1] == UNOBSERVED and self.prob_grid[x+1][y-1] == UNOBSERVED
 		return topRow and middleRow and bottomRow 
