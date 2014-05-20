@@ -190,10 +190,8 @@ class GridProbability:
 	
 	""" Method which returns the nearest unknown part of the graph. This is used as a goal
 	    The returned value needs to have an x and a y value so we use the answer class"""
-	def getNearestUnknownPoint(self, tank, lastTargets):
+	def getRandomUnknownPoint(self, tank):
 		#print "x and y is ("+ str(xOrg) +", "+str(yOrg)+ ")"
-		if hasattr(lastTargets[tank.index], 'x'):
-			return lastTargets[tank.index]
 		
 		xOrg = tank.x
 		yOrg = tank.y
@@ -210,8 +208,7 @@ class GridProbability:
 				break
 				
 		
-		#print "tank at ("+ str(xOrg) +", "+str(yOrg)+ ") going to ("+ str(answer.x) +", "+str(answer.y)+")"
-		lastTargets[tank.index] = answer		
+		#print "tank at ("+ str(xOrg) +", "+str(yOrg)+ ") going to ("+ str(answer.x) +", "+str(answer.y)+")"	
 				
 		return answer
 		

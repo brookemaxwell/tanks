@@ -131,7 +131,7 @@ class PotentialField:
 						mytank.index]
 		
 		goal = self.agent.getTargetPoint(mytank, time_diff)
-		print "target point: ("+ str(goal.x) +", "+ str(goal.y)+")       time diff: "+ str(time_diff)
+		#print "Tank ("+str(mytank.index)+") target: ("+ str(goal.x) +", "+ str(goal.y)+")       time diff: "+ str(time_diff)
 						
 		r = 1 #goal/obstacle radius
 		s = 100 #goal/obstacle field radius
@@ -144,8 +144,8 @@ class PotentialField:
 		
 		obstacles = self.agent.grid.getObstacles()
 		
-		#for obstacle in obstacles:
-		#	vectors.append(self.get_obstacle_tangent_field(mytank, obstacle, r+5, s-85, a-1))	
+		for obstacle in obstacles:
+			vectors.append(self.get_obstacle_tangent_field(mytank, obstacle, r+5, s-85, a-1))	
 		for tank in team:
 			vectors.append(self.get_repulse_field(mytank, tank, r, s/10.0, b))
 		"""

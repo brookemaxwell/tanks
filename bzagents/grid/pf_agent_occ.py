@@ -29,8 +29,8 @@ class TankController(object):
 		
 		#intialize constants
 		#Kp creates tight turns
-		Kp = .8
-		Kd = 0.5
+		Kp = .9
+		Kd = 0.1
 		
 		angleDiff = desiredVector.angle - curTankAngle
 		if abs(angleDiff + 2*pi) < abs(angleDiff):
@@ -152,18 +152,24 @@ class Agent(object):
 			answer.x = -399
 		#for every ten seconds, move their goal over 100 pixels
 		elif 25 < time_diff and time_diff < 130:
-			phase = (time_diff-20)/10
-			targetX = phase*100 -399
+			lengthOfPhase = 130- 25
+			phase = (time_diff-25)/lengthOfPhase
+			targetX = phase*799 -399
 			answer.x = targetX
 		#by this point, the tanks have crossed the grid, now send them to clean some unscanned spots up
 		else:
 			#every 40 seconds get a new target
-			if (time_diff-130) % 40 < 1:
+			if (time_diff-130) % 40 < 1 :
 				self.lastTargets = []
 				for i in range(10):
 					self.lastTargets.append(Answer())
-			answer = self.grid.getNearestUnknownPoint(tank, self.lastTargets)
-			
+				answer = self.grid.getRandomUnknownPoint(tank)
+				self.lastTargets[tank.index] = answer
+			elif not hasattr(self.lastTargets[tank.index], 'x'):
+				answer = self.grid.getRandomUnknownPoint(tank)
+				self.lastTargets[tank.index] = answer
+			else:
+				answer = self.lastTargets[tank.index]
 			
 		return answer
 			
