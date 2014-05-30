@@ -9,7 +9,6 @@ import math
 import time
 
 from bzrc import BZRC, Command
-from potential_field import PotentialField
 from geometry import Vector
 from math import atan2, pi
 
@@ -57,7 +56,7 @@ class TankController(object):
 		elif angleVel == 'nan':
 			angleVel = 0
 		"""					 index, speed, angle, shoot"""
-		return Command(self.tank.index, 1, angleVel, True)
+		return Command(self.tank.index, 0, angleVel, False)
 		
 	"""Returns the tanks direction of movment in polar coordinates. It uses the  tank x and y velocity to do so"""	
 	def getCurrentDirectionInPolar(self):
@@ -113,11 +112,10 @@ class Agent(object):
 				self.tankControllers[i].tank = mytanks[i]
 		
 		
-		pf = PotentialField(self)
 		
 		for tankController in self.tankControllers:
 			tank = tankController.tank
-			desiredVector = pf.get_desired_accel_vector(tank)
+			desiredVector = Vector(0,0)
 			cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
 			self.commands.append(cmd)			
 
