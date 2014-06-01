@@ -1,80 +1,19 @@
 #!/usr/bin/python -tt
 
 
-# This is the template for the pf agent. Right now it's just a copy of agent0.py
-
-
 import sys
 import math
 import time
 
+from TankController import TankController
+from TargetController import TargetController
 from bzrc import BZRC, Command
 from geometry import Vector
 from math import atan2, pi
 
-"""A controller for a single tank. """
-class TankController(object):
-	
-	def __init__(self, tank):
-		self.prev_speed_error = 0
-		self.prev_angle_error = 0
-		self.tank = tank
-		
-	#TODO update the variables so that they make sense/are consistent (ex. speed_error and veolocityDiff)
-	def getCommandFromVectors(self, desiredVector, timeDiff):	
-		curTankAngle = self.getCurrentDirectionInPolar()
-		#angleVel = desiredVector.angle - curTankVector.angle
-		
-		
-		#intialize constants
-		#Kp creates tight turns
-		Kp = 1.0
-		Kd = 0.0
-		
-		
-		#magnitudeDiff = desiredVector.velocity - curVector.velocity
-		#TODO how does this work with polar cooridantes or those returned by the potential_feild? Could we get strange behavoir with the angles overlapping
-		angleDiff = desiredVector.angle - curTankAngle
-		if abs(angleDiff + 2*pi) < abs(angleDiff):
-			angleDiff = angleDiff + 2*pi
-		elif abs(angleDiff - 2*pi) < abs(angleDiff):
-			angleDiff = angleDiff - 2*pi
-		#TODO is timeDiff an int? Will dividing by timeDiff work?
-		#commandVector.velocity = Kp(velocityDiff) + Kd( velocityDiff - self.speed_error )/timeDiff
-		#prevent a divide by zero error
-		if timeDiff == 0:
-			timeDiff = 0.01
-		angleVel = Kp*angleDiff + Kd* (angleDiff - self.prev_angle_error )/timeDiff
-		#speed_error = velocityDiff
-		prev_angle_error = angleDiff
-		#TODO depending on how we get the angle and speed, convert these to a command
-		
-		if 1 < angleVel:
-			angleVel = 1.0
-		elif angleVel < -1: 
-			angleVel = -1.0
-		elif angleVel == 'nan':
-			angleVel = 0
-		"""					 index, speed, angle, shoot"""
-		return Command(self.tank.index, 0, angleVel, False)
-		
-	"""Returns the tanks direction of movment in polar coordinates. It uses the  tank x and y velocity to do so"""	
-	def getCurrentDirectionInPolar(self):
-		vx = self.tank.vx
-		vy = self.tank.vy
-		
-		#the follow statement prevents divide by zero errors
-		if vx == 0 and vy == 0:
-			return 0
-		elif vx == 0 and 0 < vy:
-			return pi/2
-		elif vx == 0 and vy < 0:
-			return 3*pi/2
-		else:		
-			return atan2(vy,vx)
-	
-		
-	
+def getTimeInterval():
+	return 4
+
 
 class Agent(object):
 	"""Class handles all command and control logic for a teams tanks."""
@@ -84,10 +23,20 @@ class Agent(object):
 		self.constants = self.bzrc.get_constants()
 		self.commands = []
 		self.tankControllers = []
+		self.targetControllers = []
 		self.oldTime = 0
+		self.lastTimeTargeted = -1
 		
 
 	def tick(self, time_diff):
+		#this code makes it so the targeting is running once every four seconds. 
+		#It takes four seconds for a tank bullet to reach maxium distance and also to reload
+		second = int(time_diff)
+		if second == self.lastTimeTargeted or second%getTimeInterval() != 0:
+			return
+		self.lastTimeTargeted = second
+		
+		print self.lastTimeTargeted
 		"""Some time has passed; decide what to do next."""
 		mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
 		self.mytanks = mytanks
@@ -102,20 +51,34 @@ class Agent(object):
 		self.commands = []
 	
 		#The tankControllers array assumes that tankController[1] will always correspond to mytanks[1]
-		#if not intialized, intialize the tankController array
+		#if not intialized, intialize the tankControllers and targetControllers array
 		if len(self.tankControllers) == 0:
 			for tank in mytanks:
 				self.tankControllers.append(TankController(tank))
-		#else update the tank variable in each tank controller
+			for othertank in othertanks:
+				self.targetControllers.append(TargetController(othertank, getTimeInterval()))
+		#else update the tank variable in each tank and target controller
 		else:
 			for i in range (0, len(self.tankControllers)):
 				self.tankControllers[i].tank = mytanks[i]
+			for i in range (0, len(self.targetControllers)):
+				self.targetControllers[i].updateTarget(othertanks[i])
 		
 		
-		
-		for tankController in self.tankControllers:
-			tank = tankController.tank
+		for i in range (0, len(self.tankControllers)):
+			tankController = self.tankControllers[i]
+			
+			#get this tanks target controller
+			if i < len(self.targetControllers):
+				target = self.targetControllers[i]
+			else:
+				target = self.targetControllers[0]
+			
+			self.targetControllers[i].getTargetPosAtNextInterval()
+			
 			desiredVector = Vector(0,0)
+			
+			
 			cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
 			self.commands.append(cmd)			
 
