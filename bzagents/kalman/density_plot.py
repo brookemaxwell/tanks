@@ -34,19 +34,19 @@ def printSetup(agent):
 	return s
 	
 #this calculates the density function
-def printCalc(agent, sigma_x, sigma_y, rho):
+def printCalc(agent, sigma_x, sigma_y, rho, target_x, target_y):
 	s = "sigma_x = " + str(sigma_x) + "\n"
 	s = s + "sigma_y = " + str(sigma_y) + "\n"
 	s = s + "rho = " + str(rho) + "\n"
+	s = s + "set pm3d at s explicit" + "\n"
+		
 	s = s + "splot 1.0/(2.0 * pi * "+str(sigma_x) +" * "+ str(sigma_y)+" * sqrt(1 - "+str(rho)+"**2)) \
-		* exp(-1.0/2.0 * (x**2 / "+str(sigma_x)+"**2 + y**2 / "+str(sigma_y)+"**2 \
+		* exp(-1.0/2.0 * ((x - "+str(target_x)+")**2 / "+str(sigma_x)+"**2 + (y - "+str(target_y)+")**2/ "+str(sigma_y)+"**2 \
 		- 2.0*"+str(rho)+"*x*y/("+str(sigma_x)+"*"+str(sigma_y)+"))) with pm3d"+ "\n"
 	return s
 
 #sigma_x and sigma_y are the std dev in either direction. rho is the correlation between x and y
-def plot(agent, sigma_x, sigma_y):#, target_x, target_y):
-	target_x = 100
-	target_y = 100
+def plot(agent, sigma_x, sigma_y, target_x, target_y):#, target_x, target_y):
 	
 	rho = 0	
 	#since E = [[25 0],[0 25]] from the spec\
@@ -54,21 +54,19 @@ def plot(agent, sigma_x, sigma_y):#, target_x, target_y):
 	
 	f.write(printHeader() + "\n")
 	f.write(printSetup(agent) + "\n")
-	f.write(printCalc(agent, sigma_x, sigma_y, rho) + "\n")
+	f.write(printCalc(agent, sigma_x, sigma_y, rho, target_x, target_y) + "\n")
 	f.write(printArrows(agent.x, agent.y, 5) + "\n")
-	#f.write(printArrows(target_x, target_y, 5) + "\n")
-	#command to run it: gnuplot
-	#load "plot.gpi"
 	print "---------------plotting finished---------------\n\n"
 	
-	
+'''
 class Agent(object):
 	"""Class handles all command and control logic for a teams tanks."""
 
 	def __init__(self, x, y):
 		self.x = x
 		self.y = y
-'''		
+
+
 agent = Agent(20, 20);
 covariance = np.matrix('50, 0, 0,   0,  0, 0;' +
 						 '0, .1, 0,  0,  0, 0;' +
@@ -79,5 +77,8 @@ covariance = np.matrix('50, 0, 0,   0,  0, 0;' +
 
 sigma_x = covariance.item((0, 0))
 sigma_y = covariance.item((3, 3))
-plot(agent,sigma_x, sigma_y);
+target_x = 100;
+target_y = 100;
+plot(agent,sigma_x, sigma_y, target_x, target_y);
+
 '''
