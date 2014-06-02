@@ -11,33 +11,67 @@ import time
 
 from bzrc import BZRC, Command
 
-class WildPigeonAgent(object):
-    """Class handles all command and control logic for a wild clay pigeon tank team."""
+def normalize_angle(angle):
+	"""Make any angle be between +/- pi."""
+	angle -= 2 * math.pi * int (angle / (2 * math.pi))
+	if angle <= -math.pi:
+		angle += 2 * math.pi
+	elif angle > math.pi:
+		angle -= 2 * math.pi
+	return angle
+		
+def outOfRange(pigeon):
+	#print str(pigeon.x) + ", "+ str(pigeon.y)
+	if pigeon.x > 100:
+		return (True, "right")
+	elif pigeon.x < -100:
+		return (True, "left")
+	elif pigeon.y > 250:
+		return (True, "top")
+	elif pigeon.y < -250:
+		return (True, "bottom")
+	return (False, "inrange")
 
-    def __init__(self, bzrc):
-        self.bzrc = bzrc
-        self.constants = self.bzrc.get_constants()
-        self.commands = []
+class WildPigeonAgent(object):
+	"""Class handles all command and control logic for a wild clay pigeon tank team."""
+
+	def __init__(self, bzrc):
+		self.bzrc = bzrc
+		self.constants = self.bzrc.get_constants()
+		self.commands = []
 
 	#time diff is in seconds and is a float
-    def tick(self, time_diff):
-        mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
+	def tick(self, time_diff):
+		mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
 		#---------------------MAIN LOGIC AREA------------------------
-        
-        # speed 1 for 5 seconds, turning one way.
-        if time_diff % 10 < 5:
-			self.commands = []
-			for x in range(0, len(mytanks)):
-				self.commands.append(Command(x, 1, .5, False))
-        #speed .5 for 4 seconds, turning other way.
-        elif time_diff % 10 < 9:
-			self.commands = []
-			for x in range(0, len(mytanks)):
-				self.commands.append(Command(x, .5, -1, False))
+		
+		for tank in mytanks:
+			out_of_range, direction = outOfRange(tank)
+			if out_of_range:
+				target_angle = math.atan2(0 - tank.y, 0 - tank.x)
+				relative_angle = normalize_angle(target_angle - tank.angle)
+				if(time_diff%4 >= 0.0 and time_diff%4 <= 0.1):
+					print relative_angle
+				if(abs(relative_angle) > .7):
+					self.commands.append(Command(tank.index, .2, .6, False))
+				else:
+					self.commands.append(Command(tank.index, 1, 0, False))
+			else:
+				# speed 1 for 5 seconds, turning one way.
+				if time_diff % 10 < 5:
+					self.commands = []
+					for x in range(0, len(mytanks)):
+						self.commands.append(Command(x, 1, .5, False))
+				#speed .5 for 4 seconds, turning other way.
+				elif time_diff % 10 < 9:
+					self.commands = []
+					for x in range(0, len(mytanks)):
+						self.commands.append(Command(x, .5, -1, False))
 		
 
-        results = self.bzrc.do_commands(self.commands)
-        #---------------------END MAIN LOGIC AREA------------------------
+		results = self.bzrc.do_commands(self.commands)
+
+
 
 class PigeonAgent(object):
 	"""Class handles all command and control logic for a predictably moving clay pigeon tank team."""
@@ -52,9 +86,24 @@ class PigeonAgent(object):
 		mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
 		"""Some time has passed; decide what to do next."""
 		#---------------------MAIN LOGIC AREA------------------------
-		for x in range(0, len(mytanks)):
-			self.commands.append(Command(x, 1, 0, False))
+	
+		for tank in mytanks:
+			out_of_range, direction = outOfRange(tank)
+			if out_of_range:
+				target_angle = math.atan2(0 - tank.y, 0 - tank.x)
+				relative_angle = normalize_angle(target_angle - tank.angle)
+				if(abs(relative_angle) > .5 and direction == "right"):
+					self.commands.append(Command(tank.index, .2, .6, False))
+				elif(abs(relative_angle) > .5 and direction == "left"):
+					print relative_angle
+					self.commands.append(Command(tank.index, .2, .6, False))
+				else:
+					self.commands.append(Command(tank.index, .5, 0, False))#go half speed
+			else:
+				self.commands.append(Command(tank.index, .5, 0, False))#go half speed
+		
 		results = self.bzrc.do_commands(self.commands)
+
 
 class StationaryPigeonAgent(object):
 	"""Class handles all command and control logic for a stationary clay pigeon tank team (aka, none)."""
@@ -70,32 +119,31 @@ class StationaryPigeonAgent(object):
 		"""don't do anything, just sit there."""
 
 def main():
-    # Process CLI arguments.
-    try:
-        execname, host, port = sys.argv
-    except ValueError:
-        execname = sys.argv[0]
-        print >>sys.stderr, '%s: incorrect number of arguments' % execname
-        print >>sys.stderr, 'usage: %s hostname port' % sys.argv[0]
-        sys.exit(-1)
-        
-    bzrc = BZRC(host, int(port))
+	# Process CLI arguments.
+	try:
+		execname, host, port = sys.argv
+	except ValueError:
+		execname = sys.argv[0]
+		print >>sys.stderr, '%s: incorrect number of arguments' % execname
+		print >>sys.stderr, 'usage: %s hostname port' % sys.argv[0]
+		sys.exit(-1)
+		
+	bzrc = BZRC(host, int(port))
+	agent = PigeonAgent(bzrc)
 
-    agent = WildPigeonAgent(bzrc)
+	prev_time = time.time()
 
-    prev_time = time.time()
-
-    # Run the agent
-    try:
-        while True:
-            time_diff = time.time() - prev_time
-            agent.tick(time_diff)
-    except KeyboardInterrupt:
-        print "Exiting due to keyboard interrupt."
-        bzrc.close()
+	# Run the agent
+	try:
+		while True:
+			time_diff = time.time() - prev_time
+			agent.tick(time_diff)
+	except KeyboardInterrupt:
+		print "Exiting due to keyboard interrupt."
+		bzrc.close()
 
 
 if __name__ == '__main__':
-    main()
+	main()
 
 # vim: et sw=4 sts=4
