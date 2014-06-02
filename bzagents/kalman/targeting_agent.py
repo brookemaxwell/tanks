@@ -10,6 +10,7 @@ from TargetController import TargetController
 from bzrc import BZRC, Command
 from geometry import Vector
 from math import atan2, pi
+import density_plot as plt
 
 def getTimeInterval():
 	return 4
@@ -49,6 +50,8 @@ class Agent(object):
 						self.constants['team']]
 
 		self.commands = []
+		
+		#plt.plot(mytanks[0], traget_x, target_y)
 	
 		#The tankControllers array assumes that tankController[1] will always correspond to mytanks[1]
 		#if not intialized, intialize the tankControllers and targetControllers array
