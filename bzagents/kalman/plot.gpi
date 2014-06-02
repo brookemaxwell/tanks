@@ -1,0 +1,20 @@
+set xrange [-400.0: 400.0]
+set yrange [-400.0: 400.0]
+set pm3d
+set view map
+unset key
+set size square
+
+set palette model RGB functions 1-gray, 1-gray, 1-gray
+set isosamples 100
+sigma_x = 50.0
+sigma_y = 50.0
+rho = 0
+splot 1.0/(2.0 * pi * 50.0 * 50.0 * sqrt(1 - 0**2)) 		* exp(-1.0/2.0 * (x**2 / 50.0**2 + y**2 / 50.0**2 		- 2.0*0*x*y/(50.0*50.0))) with pm3d
+
+unset arrow
+set arrow from 15, 15 to 15, 25 nohead front lt 3
+set arrow from 15, 15 to 25, 15 nohead front lt 3
+set arrow from 15, 25 to 25, 25 nohead front lt 3
+set arrow from 25, 15 to 25, 25 nohead front lt 3
+

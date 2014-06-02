@@ -37,8 +37,11 @@ class Agent(object):
 		
 		second = int(time_diff)
 		if second == self.lastTimeTargeted or second%getTimeInterval() != 0:
-			mytanks = self.brzc.get_mytanks
-			plt.plot(mytanks[0])
+			mytanks = self.bzrc.get_mytanks
+			for tank in mytanks:
+				sigma_x = self.targetControllers[0].Et.item((0,0));
+				sigma_y = self.targetControllers[0].Et.item((3,3));
+				plt.plot(tank, sigma_x, sigma_y)
 			return
 		self.lastTimeTargeted = second
 		
@@ -56,8 +59,6 @@ class Agent(object):
 
 		self.commands = []
 		
-		#plt.plot(mytanks[0], traget_x, target_y)
-	
 		#The tankControllers array assumes that tankController[1] will always correspond to mytanks[1]
 		#if not intialized, intialize the tankControllers and targetControllers array
 		if len(self.tankControllers) == 0:
