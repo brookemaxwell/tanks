@@ -9,6 +9,8 @@ class TankController(object):
 		self.prev_speed_error = 0
 		self.prev_angle_error = 0
 		self.tank = tank
+		self.targetX = 0
+		self.targetY = 0
 		
 	#TODO update the variables so that they make sense/are consistent (ex. speed_error and veolocityDiff)
 	def getCommandFromVectors(self, desiredVector, timeDiff):	
@@ -61,6 +63,9 @@ class TankController(object):
 			return 3*pi/2
 		else:		
 			return atan2(vy,vx)
-	
-		
+	"""
+	def aimAt(self, x, y):
+		self.targetX = x
+		self.targetY = y
+	"""
 	

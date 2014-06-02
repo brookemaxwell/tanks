@@ -38,7 +38,6 @@ def printCalc(agent, sigma_x, sigma_y, rho, target_x, target_y):
 	s = "sigma_x = " + str(sigma_x) + "\n"
 	s = s + "sigma_y = " + str(sigma_y) + "\n"
 	s = s + "rho = " + str(rho) + "\n"
-	s = s + "set pm3d at s explicit" + "\n"
 		
 	s = s + "splot 1.0/(2.0 * pi * "+str(sigma_x) +" * "+ str(sigma_y)+" * sqrt(1 - "+str(rho)+"**2)) \
 		* exp(-1.0/2.0 * ((x - "+str(target_x)+")**2 / "+str(sigma_x)+"**2 + (y - "+str(target_y)+")**2/ "+str(sigma_y)+"**2 \
