@@ -32,8 +32,13 @@ class Agent(object):
 	def tick(self, time_diff):
 		#this code makes it so the targeting is running once every four seconds. 
 		#It takes four seconds for a tank bullet to reach maxium distance and also to reload
+		
+		#position tank based on latest observation
+		
 		second = int(time_diff)
 		if second == self.lastTimeTargeted or second%getTimeInterval() != 0:
+			mytanks = self.brzc.get_mytanks
+			plt.plot(mytanks[0])
 			return
 		self.lastTimeTargeted = second
 		
