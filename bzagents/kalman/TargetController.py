@@ -94,7 +94,7 @@ class TargetController(object):
 	def getTargetPosAtNextInterval(self):
 		predictionMatrix = self.F * self.mewt
 		print "We predict the tank will be at ("+ str(predictionMatrix[0,0]) +", "+ str(predictionMatrix[3,0])+")"+"\n\n\n"
-		return 
+		return predictionMatrix[0,0], predictionMatrix[3,0]
 		
 	def makeMatrixFromObserved(self, targetTank):
 		

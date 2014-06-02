@@ -12,7 +12,7 @@ import time
 def sqr(x):  
 	return x * x 
 """Make any angle be between +/- pi."""
-def normalize_angle(self, angle):
+def normalize_angle( angle):
 	
 	angle -= 2 * math.pi * int (angle / (2 * math.pi))
 	if angle <= -math.pi:

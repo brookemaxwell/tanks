@@ -1,4 +1,4 @@
-from geometry import Vector
+from geometry import Vector, normalize_angle
 from math import atan2, pi
 from bzrc import Command
 
@@ -11,10 +11,11 @@ class TankController(object):
 		self.tank = tank
 		self.targetX = 0
 		self.targetY = 0
+		self.target = 0
 		
 	#TODO update the variables so that they make sense/are consistent (ex. speed_error and veolocityDiff)
 	def getCommandFromVectors(self, desiredVector, timeDiff):	
-		curTankAngle = self.getCurrentDirectionInPolar()
+		curTankAngle = self.tank.angle#self.getCurrentDirectionInPolar()
 		#angleVel = desiredVector.angle - curTankVector.angle
 		
 		
@@ -63,9 +64,39 @@ class TankController(object):
 			return 3*pi/2
 		else:		
 			return atan2(vy,vx)
-	"""
-	def aimAt(self, x, y):
-		self.targetX = x
-		self.targetY = y
-	"""
+	
+	def getFireCommand(self):
+		"""				index, speed, angle, shoot"""
+		return Command(self.tank.index, 0, 0, True)
+		
+	def updateTarget(self, targetCont):
+		self.target = targetCont
+		self.targetX, self.targetY = self.target.getTargetPosAtNextInterval()
+		
+	
+	def getTargetingCommand(self):
+		yDiff = self.targetY - self.tank.y
+		xDiff = self.targetX - self.tank.x
+		#print "cur angle: " + str(curAngle) +"    tank at "+ str(self.tank.x)+ ",  "+ str(self.tank.y)
+		
+		
+		
+		target_angle = atan2(yDiff, xDiff)
+		relative_angle = normalize_angle(target_angle - self.tank.angle)
+		
+		
+		
+		#print "relative angle "+ str(abs(relative_angle)) + "      "+ str(abs(relative_angle - pi))
+		if abs(relative_angle) < abs(.2):
+			angleVel = 0
+		#elif abs(relative_angle) < abs(relative_angle - pi):
+		#	angleVel = -.7
+		else:
+			angleVel = .7
+		
+		
+		#print "cur angleVel: " + str(angleVel)
+			
+		return Command(self.tank.index, 0, angleVel, False)
+		
 	

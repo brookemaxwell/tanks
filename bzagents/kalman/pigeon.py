@@ -68,7 +68,8 @@ class Agent(object):
         #---------------------END MAIN LOGIC AREA------------------------
 	
 def getRandomDirection():
-	offset = random.uniform(-.5,.5)
+	offset = random.uniform(-.5,0)
+	#offset = -.2
 	return pi + offset
 
 def getRandomSpeed():
