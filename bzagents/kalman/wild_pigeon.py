@@ -105,7 +105,7 @@ class PigeonAgent(object):
 		results = self.bzrc.do_commands(self.commands)
 
 
-class StationaryPigeonAgent(object):
+class SittingPigeonAgent(object):
 	"""Class handles all command and control logic for a stationary clay pigeon tank team (aka, none)."""
 
 	def __init__(self, bzrc):
@@ -117,6 +117,21 @@ class StationaryPigeonAgent(object):
 	def tick(self, time_diff):
 		mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
 		"""don't do anything, just sit there."""
+		for tank in mytanks:
+			out_of_range, direction = outOfRange(tank)
+			print tank.angvel
+			if out_of_range:
+				target_angle = math.atan2(0 - tank.y, 0 - tank.x)
+				relative_angle = normalize_angle(target_angle - tank.angle)
+				if(abs(relative_angle) > .5):
+					#print ">"
+					self.commands.append(Command(tank.index, .2, .3, False))
+				else:
+					#print "not"
+					self.commands.append(Command(tank.index, .3, 0, False))
+			else:
+				self.commands.append(Command(tank.index, 0, 0, False))#go half speed
+		results = self.bzrc.do_commands(self.commands)
 
 def main():
 	# Process CLI arguments.
