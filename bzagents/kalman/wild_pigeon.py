@@ -2,7 +2,7 @@
 
 #####################
 #
-#logic for clay pigeons: one wild(unpredictable), one moving predictably, and one stationary.
+#logic for clay pigeons: one wild(unpredictable) and one stationary. The one moving predictably is in the pigeon.py file.
 #
 #####################
 import sys
@@ -72,39 +72,6 @@ class WildPigeonAgent(object):
 		results = self.bzrc.do_commands(self.commands)
 
 
-
-class PigeonAgent(object):
-	"""Class handles all command and control logic for a predictably moving clay pigeon tank team."""
-
-	def __init__(self, bzrc):
-		self.bzrc = bzrc
-		self.constants = self.bzrc.get_constants()
-		self.commands = []
-
-	#time diff is in seconds and is a float
-	def tick(self, time_diff):
-		mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
-		"""Some time has passed; decide what to do next."""
-		#---------------------MAIN LOGIC AREA------------------------
-	
-		for tank in mytanks:
-			out_of_range, direction = outOfRange(tank)
-			if out_of_range:
-				target_angle = math.atan2(0 - tank.y, 0 - tank.x)
-				relative_angle = normalize_angle(target_angle - tank.angle)
-				if(abs(relative_angle) > .5 and direction == "right"):
-					self.commands.append(Command(tank.index, .2, .6, False))
-				elif(abs(relative_angle) > .5 and direction == "left"):
-					#print relative_angle
-					self.commands.append(Command(tank.index, .2, .6, False))
-				else:
-					self.commands.append(Command(tank.index, .5, 0, False))#go half speed
-			else:
-				self.commands.append(Command(tank.index, .5, 0, False))#go half speed
-		
-		results = self.bzrc.do_commands(self.commands)
-
-
 class SittingPigeonAgent(object):
 	"""Class handles all command and control logic for a stationary clay pigeon tank team (aka, none)."""
 
@@ -112,6 +79,9 @@ class SittingPigeonAgent(object):
 		self.bzrc = bzrc
 		self.constants = self.bzrc.get_constants()
 		self.commands = []
+		self.aliveTime = 0
+		self.prevTime = 0
+		
 
 	#time diff is in seconds and is a float
 	def tick(self, time_diff):
@@ -119,18 +89,23 @@ class SittingPigeonAgent(object):
 		"""don't do anything, just sit there."""
 		for tank in mytanks:
 			out_of_range, direction = outOfRange(tank)
-			print tank.angvel
-			if out_of_range:
+			if tank.status =="dead":
+				self.aliveTime = 0
+				self.prevTime = time_diff
+			else:
+				self.aliveTime = time_diff-self.prevTime
+			if out_of_range and self.aliveTime < 10.0:
 				target_angle = math.atan2(0 - tank.y, 0 - tank.x)
 				relative_angle = normalize_angle(target_angle - tank.angle)
 				if(abs(relative_angle) > .5):
-					#print ">"
-					self.commands.append(Command(tank.index, .2, .3, False))
+					print ">"
+					self.commands.append(Command(tank.index, 0, relative_angle*2, False))
 				else:
-					#print "not"
+					print "not"
 					self.commands.append(Command(tank.index, .3, 0, False))
 			else:
-				self.commands.append(Command(tank.index, 0, 0, False))#go half speed
+				print "stopping"
+				self.commands.append(Command(tank.index, 0, 0, False))
 		results = self.bzrc.do_commands(self.commands)
 
 def main():
@@ -144,7 +119,7 @@ def main():
 		sys.exit(-1)
 		
 	bzrc = BZRC(host, int(port))
-	agent = PigeonAgent(bzrc)
+	agent = WildPigeonAgent(bzrc)
 
 	prev_time = time.time()
 
