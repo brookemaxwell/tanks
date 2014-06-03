@@ -95,7 +95,7 @@ class PigeonAgent(object):
 				if(abs(relative_angle) > .5 and direction == "right"):
 					self.commands.append(Command(tank.index, .2, .6, False))
 				elif(abs(relative_angle) > .5 and direction == "left"):
-					print relative_angle
+					#print relative_angle
 					self.commands.append(Command(tank.index, .2, .6, False))
 				else:
 					self.commands.append(Command(tank.index, .5, 0, False))#go half speed

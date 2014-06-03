@@ -20,12 +20,13 @@ def printHeader():
 	return s
 	
 #this sets the range of the density function (?). right now it doesn't actually do more than the demo
-def printArrows(x, y, radius):
+def printArrows(x, y, radius, targ_x, targ_y):
 	s = "unset arrow" + "\n"
 	s = s + "set arrow from "+str(x - radius) + ", "+str(y - radius)+" to "+str(x - radius) + ", "+str(y + radius) +" nohead front lt 3" + "\n"
 	s = s + "set arrow from "+str(x - radius) + ", "+str(y - radius)+" to "+str(x + radius) + ", "+str(y - radius) +" nohead front lt 3" + "\n"
 	s = s + "set arrow from "+str(x - radius) + ", "+str(y + radius)+" to "+str(x + radius) + ", "+str(y + radius) +" nohead front lt 3"+ "\n"
 	s = s + "set arrow from "+str(x + radius) + ", "+str(y - radius)+" to "+str(x + radius) + ", "+str(y + radius) +" nohead front lt 3"+ "\n"
+	s = s + "set arrow from "+str(x) + ", "+str(y)+" to "+str(targ_x) + ", "+str(targ_y) +" nohead front lt 3"+ "\n"
 	return s
 	
 def printSetup(agent):
@@ -54,30 +55,5 @@ def plot(agent, sigma_x, sigma_y, target_x, target_y):#, target_x, target_y):
 	f.write(printHeader() + "\n")
 	f.write(printSetup(agent) + "\n")
 	f.write(printCalc(agent, sigma_x, sigma_y, rho, target_x, target_y) + "\n")
-	f.write(printArrows(agent.x, agent.y, 5) + "\n")
-	print "---------------plotting finished---------------\n\n"
-	
-'''
-class Agent(object):
-	"""Class handles all command and control logic for a teams tanks."""
-
-	def __init__(self, x, y):
-		self.x = x
-		self.y = y
-
-
-agent = Agent(20, 20);
-covariance = np.matrix('50, 0, 0,   0,  0, 0;' +
-						 '0, .1, 0,  0,  0, 0;' +
-						 '0,  0, .1, 0,  0, 0;' +
-						 '0,  0, 0,  50,  0, 0;' +
-						 '0,  0, 0,  0, .1, 0;' +
-						 '0,  0, 0,  0,  0, .1')
-
-sigma_x = covariance.item((0, 0))
-sigma_y = covariance.item((3, 3))
-target_x = 100;
-target_y = 100;
-plot(agent,sigma_x, sigma_y, target_x, target_y);
-
-'''
+	f.write(printArrows(agent.x, agent.y, 5, target_x, target_y) + "\n")
+	#print "---------------plotting finished---------------\n\n"

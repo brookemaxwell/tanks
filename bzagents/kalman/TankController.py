@@ -12,7 +12,8 @@ class TankController(object):
 		self.targetX = 0
 		self.targetY = 0
 		self.target = 0
-		
+	
+	'''
 	#TODO update the variables so that they make sense/are consistent (ex. speed_error and veolocityDiff)
 	def getCommandFromVectors(self, desiredVector, timeDiff):	
 		curTankAngle = self.tank.angle#self.getCurrentDirectionInPolar()
@@ -47,9 +48,11 @@ class TankController(object):
 			angleVel = -1.0
 		elif angleVel == 'nan':
 			angleVel = 0
-		"""				index, speed, angle, shoot"""
-		return Command(self.tank.index, 0, .1, True)
 		
+		shoot = self.tank.time_to_reload < 3
+		"""				index, speed, angle, shoot"""
+		return Command(self.tank.index, 0, .1, shoot)
+	'''
 	"""Returns the tanks direction of movment in polar coordinates. It uses the  tank x and y velocity to do so"""	
 	def getCurrentDirectionInPolar(self):
 		vx = self.tank.vx
@@ -74,29 +77,20 @@ class TankController(object):
 		self.targetX, self.targetY = self.target.getTargetPosAtNextInterval()
 		
 	
-	def getTargetingCommand(self):
+	def getTargetingCommand(self, time_diff):
 		yDiff = self.targetY - self.tank.y
 		xDiff = self.targetX - self.tank.x
 		#print "cur angle: " + str(curAngle) +"    tank at "+ str(self.tank.x)+ ",  "+ str(self.tank.y)
 		
 		
-		
 		target_angle = atan2(yDiff, xDiff)
 		relative_angle = normalize_angle(target_angle - self.tank.angle)
 		
-		
-		
-		#print "relative angle "+ str(abs(relative_angle)) + "      "+ str(abs(relative_angle - pi))
-		if abs(relative_angle) < abs(.2):
-			angleVel = 0
-		#elif abs(relative_angle) < abs(relative_angle - pi):
-		#	angleVel = -.7
-		else:
-			angleVel = .7
-		
-		
-		#print "cur angleVel: " + str(angleVel)
+		#print "shots avail "+str(self.tank.shots_avail)
+		#print str(self.tank.time_to_reload) + ", " + str(time_diff)
+		shoot = False#abs(relative_angle) < abs(.0001)	#shots_avail > 0 #time_to_reload
+		angleVel = relative_angle * 2#/time_diff
 			
-		return Command(self.tank.index, 0, angleVel, False)
+		return Command(self.tank.index, 0, angleVel, shoot)
 		
 	

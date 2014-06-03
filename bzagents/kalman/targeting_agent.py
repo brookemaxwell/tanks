@@ -65,14 +65,14 @@ class Agent(object):
 		#------------------  if still aiming-------------------------------------------------
 		if second == self.lastTimeTargeted or second%getTimeInterval() != 0:
 			for i in range (0, len(self.tankControllers)):
-				cmd = self.tankControllers[i].getTargetingCommand()
+				cmd = self.tankControllers[i].getTargetingCommand(second)
 				self.commands.append(cmd) 
 		
 		#------------------ if time to update the target and fire again-------------------------------------------------
 		else:
 			#update last time targeteted
 			self.lastTimeTargeted = second
-			print self.lastTimeTargeted
+			#print self.lastTimeTargeted
 			
 			#update the TargetControllers
 			for i in range (0, len(self.targetControllers)):

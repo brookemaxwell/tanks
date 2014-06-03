@@ -19,12 +19,12 @@ class TargetController(object):
 		
 		#this matrix contains the original tank state of the location,speed, and acc of the enenmy tank. It is a column vector.
 		self.mewt = matrix( "200; 0; 0; 0; 0; 0" )
-		print str(self.mewt) +"\n\n"
+		#print str(self.mewt) +"\n\n"
 		#covariance matrix 
-		self.Et = matrix('25, 0, 0,   0,  0, 0;' +
+		self.Et = matrix('20, 0, 0,   0,  0, 0;' +
 						 '0, .1, 0,  0,  0, 0;' +
 						 '0,  0, .1, 0,  0, 0;' +
-						 '0,  0, 0,  25,  0, 0;' +
+						 '0,  0, 0,  20,  0, 0;' +
 						 '0,  0, 0,  0, .1, 0;' +
 						 '0,  0, 0,  0,  0, .1')
 		
@@ -36,13 +36,20 @@ class TargetController(object):
 						 '0,  0, 0,  1,  4, 2;' +
 						 '0,  0, 0,  0,  1, 4;' +
 						 '0,  0, 0,  0,  0, 1')
-		
+		'''
 		self.Ex = matrix('25, 0, 0,   0,  0, 0;' +
 						 '0,  5, 0,   0,  0, 0;' +
 						 '0,  0, .1, 0,  0, 0;' +
 						 '0,  0, 0,  25,  0, 0;' +
 						 '0,  0, 0,   0, 5, 0;' +
 						 '0,  0, 0,   0,  0, .1')
+		'''				 
+		self.Ex = matrix('.1, 0, 0,   0,  0, 0;' +
+						 '0,  .1, 0,   0,  0, 0;' +
+						 '0,  0, 50, 0,  0, 0;' +
+						 '0,  0, 0,  .1,  0, 0;' +
+						 '0,  0, 0,   0, .1, 0;' +
+						 '0,  0, 0,   0,  0, 50')
 		
 		self.H = matrix('1 0 0 0 0 0;'+
 						'0 0 0 1 0 0')		
@@ -69,10 +76,10 @@ class TargetController(object):
 		Ez = self.Ez
 		I = self.I
 		ztplus1 = self.makeMatrixFromObserved(targetTank)
-		
-		print "enemy position reading: ("+ str(targetTank.x)+", "+str(targetTank.y)+")"
-		print "in filter " + str(mewt[0][0])+", "+str(mewt[3][0])+") " 
-		print "enemy velocity.  vx: "+ str(self.lastVX) + "   vy: "+ str(self.lastVY)
+	
+		#print "enemy position reading: ("+ str(targetTank.x)+", "+str(targetTank.y)+")"
+		#print "in filter " + str(mewt[0][0])+", "+str(mewt[3][0])+") " 
+		#print "enemy velocity.  vx: "+ str(self.lastVX) + "   vy: "+ str(self.lastVY)
 		
 		
 		FEtFtranPlusEx = ( F * Et * (F.T) ) + Ex
@@ -86,14 +93,14 @@ class TargetController(object):
 		self.mewt = mewtplus1
 		self.Et = Etplus1
 		
-		print "new mewt "+ str(mewt)
+		#print "new mewt "+ str(mewt)
 		
 	
 	
 	"""Using the last X and Y position and velocity, predict the next X,Y coordiante for the enemy tank  """
 	def getTargetPosAtNextInterval(self):
 		predictionMatrix = self.F * self.mewt
-		print "We predict the tank will be at ("+ str(predictionMatrix[0,0]) +", "+ str(predictionMatrix[3,0])+")"+"\n\n\n"
+		#print "We predict the tank will be at ("+ str(predictionMatrix[0,0]) +", "+ str(predictionMatrix[3,0])+")"+"\n\n\n"
 		return predictionMatrix[0,0], predictionMatrix[3,0]
 		
 	def makeMatrixFromObserved(self, targetTank):
@@ -101,6 +108,10 @@ class TargetController(object):
 		timeDiff = self.deltaTime
 		x = targetTank.x
 		y = targetTank.y
+		if(targetTank.status == "dead"):
+			print "dead " + str(targetTank.x) + ", " + str(targetTank.y)
+			x = 200
+			y = 0
 		vx = (x - self.lastX)/timeDiff
 		vy = (y - self.lastY)/timeDiff
 		ax = (vx - self.lastVX)/timeDiff
