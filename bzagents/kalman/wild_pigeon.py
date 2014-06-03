@@ -50,10 +50,10 @@ class WildPigeonAgent(object):
 			if out_of_range:
 				target_angle = math.atan2(0 - tank.y, 0 - tank.x)
 				relative_angle = normalize_angle(target_angle - tank.angle)
-				if(time_diff%4 >= 0.0 and time_diff%4 <= 0.1):
-					print relative_angle
+				#if(time_diff%4 >= 0.0 and time_diff%4 <= 0.1):
+					#print relative_angle
 				if(abs(relative_angle) > .7):
-					self.commands.append(Command(tank.index, .2, .6, False))
+					self.commands.append(Command(tank.index, .2, 2*relative_angle, False))
 				else:
 					self.commands.append(Command(tank.index, 1, 0, False))
 			else:
