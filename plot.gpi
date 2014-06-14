@@ -1,0 +1,21 @@
+set xrange [-400.0: 400.0]
+set yrange [-400.0: 400.0]
+set pm3d
+set view map
+unset key
+set size square
+
+set palette model RGB functions 1-gray, 1-gray, 1-gray
+set isosamples 100
+sigma_x = 24.9399253802
+sigma_y = 24.9399253802
+rho = 0
+splot 1.0/(2.0 * pi * 24.9399253802 * 24.9399253802 * sqrt(1 - 0**2)) 		* exp(-1.0/2.0 * ((x - -336.975005268)**2 / 24.9399253802**2 + (y - -57.6413568441)**2/ 24.9399253802**2 		- 2.0*0*x*y/(24.9399253802*24.9399253802))) with pm3d
+
+unset arrow
+set arrow from -209.0, -2.0 to -209.0, 8.0 nohead front lt 3
+set arrow from -209.0, -2.0 to -199.0, -2.0 nohead front lt 3
+set arrow from -209.0, 8.0 to -199.0, 8.0 nohead front lt 3
+set arrow from -199.0, -2.0 to -199.0, 8.0 nohead front lt 3
+set arrow from -204.0, 3.0 to -336.975005268, -57.6413568441 nohead front lt 3
+
