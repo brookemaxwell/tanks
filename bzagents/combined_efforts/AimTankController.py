@@ -12,9 +12,6 @@ class TankController(object):
 		self.targetX = 0
 		self.targetY = 0
 		self.target = 0
-		
-	def getNextCommand(enemies, flags, obstacles, bases):
-		print "not yet implemented"	
 	
 	"""Returns the tanks direction of movment in polar coordinates. It uses the  tank x and y velocity to do so"""	
 	def getCurrentDirectionInPolar(self):

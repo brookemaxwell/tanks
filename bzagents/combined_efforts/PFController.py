@@ -5,7 +5,6 @@
 import sys
 import math
 import time
-import grid_drawer
 
 from grid_prob import GridProbability
 from bzrc_occ import BZRC, Command, Answer
@@ -20,9 +19,6 @@ class PFTankController(object):
 		self.prev_speed_error = 0
 		self.prev_angle_error = 0
 		self.tank = tank
-		
-	def getNextCommand(enemies, flags, obstacles, bases):
-		print "not yet implemented"	
 	
 	#TODO update the variables so that they make sense/are consistent (ex. speed_error and veolocityDiff)
 	def getCommandFromVectors(self, desiredVector, timeDiff):	

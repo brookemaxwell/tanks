@@ -5,7 +5,7 @@ from numpy import matrix
 
 
 """A controller for a single target. This implements the Kalman filter stuff"""
-class TargetController(object):
+class TankController(object):
 	
 	def __init__(self, tank, timeInterval):
 		self.prev_speed_error = 0
@@ -108,15 +108,14 @@ class TargetController(object):
 		x = targetTank.x
 		y = targetTank.y
 		if(targetTank.status == "dead"):
-			print "dead " + str(targetTank.x) + ", " + str(targetTank.y)
+			#print "dead " + str(targetTank.x) + ", " + str(targetTank.y)
 			x = 200
 			y = 0
 		vx = (x - self.lastX)/timeDiff
 		vy = (y - self.lastY)/timeDiff
 		ax = (vx - self.lastVX)/timeDiff
 		ay = (vy - self.lastVY)/timeDiff
-		
-		#observationMatrix = matrix( str(x)+'; '+str(vx)+'; '+str(ax)+'; '+str(y)+'; '+str(vy)+'; '+str(ay))	
+			
 		observationMatrix = matrix( str(x) +'; '+ str(y))
 		
 		self.lastX = x

@@ -130,7 +130,7 @@ class PotentialField:
 		team = [tank for tank in self.agent.mytanks if tank.index !=
 						mytank.index]
 		
-		goal = self.agent.getTargetPoint(mytank)
+		goal = self.agent.getRunnerTargetPoint(mytank)
 						
 		r = 1 #goal/obstacle radius
 		s = 100 #goal/obstacle field radius
@@ -142,6 +142,7 @@ class PotentialField:
 		vectors.append( self.get_attract_field(mytank, goal, r, s, a+4))
 		
 		obstacles = self.agent.grid.getObstacles()
+		enemies = self.agent.enemies;
 		
 		for obstacle in obstacles:
 			vectors.append(self.get_obstacle_tangent_field(mytank, obstacle, r+5, s-85, a-1))	

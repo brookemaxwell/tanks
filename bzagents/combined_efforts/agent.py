@@ -5,11 +5,14 @@ import sys
 import math
 import time
 
-from AimTankController import AimTankController
-from KalmanEnemyController import KalmanEnemyController
+import AimTankController
+import EnemyKalmanController
+import PFController
+
+from AimTankController import TankController as AimTankController
+from EnemyKalmanController import TankController as EnemyKalmanController
 from PFController import PFTankController
-from bzrc import BZRC, Command
-from geometry import Vector
+from geometry import Vector, Point
 from math import atan2, pi
 
 from grid_prob import GridProbability
@@ -38,32 +41,37 @@ class Agent(object):
 		self.lastTimeTargeted = -1
 		self.grid = GridProbability()
 		
-	def initialize():
-		mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
+	def initialize(self):
+		mytanks, othertanks, flags, shots, bases = self.bzrc.get_lots_o_stuff()
 		self.mytanks = mytanks
 		self.othertanks = othertanks
 		self.enemies = [tank for tank in othertanks if tank.color !=
 						self.constants['team']]
 		
-		if len(self.tankControllers) == 0:
+		if len(self.runnerControllers) == 0:
 			if(len(mytanks) == 10):
 				
 				for tank in mytanks[0: NUM_OF_SHOOTERS]:
 					self.shooterControllers.append(AimTankController(tank))
 				for tank in mytanks[NUM_OF_SHOOTERS : NUM_OF_SHOOTERS + NUM_OF_RUNNERS]:
 					self.runnerControllers.append(PFTankController(tank))
-				for tank in mytanks[NUM_OF_SHOOTERS + NUM_OF_RUNNERS: len(mytanks)]
-					self.distractorControllers.append(TankController(tank))#this one doesn't exist yet
+				#for tank in mytanks[NUM_OF_SHOOTERS + NUM_OF_RUNNERS:]:
+				#	self.distractorControllers.append(TankController(tank))#this one doesn't exist yet
 				
 			for othertank in self.enemies:
 				self.targetControllers.append(EnemyKalmanController(othertank, getTimeInterval()))
 				
-	def updateControllers():
-		if len(self.tankControllers) == 0:
+	def updateControllers(self):
+		if len(self.runnerControllers) == 0:
 			self.initialize();
 		else:
-			for i in range (0, len(self.tankControllers)):
-				self.tankControllers[i].tank = mytanks[i]
+			shooters = self.mytanks[0: NUM_OF_SHOOTERS]
+			runners = self.mytanks[NUM_OF_SHOOTERS : NUM_OF_SHOOTERS + NUM_OF_RUNNERS]
+			
+			for i in range (0, len(self.shooterControllers)):
+				self.shooterControllers[i].tank = shooters[i]
+			for i in range (0, len(self.runnerControllers)):
+				self.runnerControllers[i].tank = runners[i]
 
 	#this code makes it so the targeting is running once every four seconds. 
 	#It takes four seconds for a tank bullet to reach maxium distance and also to reload
@@ -73,12 +81,11 @@ class Agent(object):
 		self.commands = []
 		
 		"""Some time has passed; decide what to do next."""
-		mytanks, othertanks, flags, shots, obstacles, bases = self.bzrc.get_lots_o_stuff()
+		mytanks, othertanks, flags, shots, bases = self.bzrc.get_lots_o_stuff()
 		self.mytanks = mytanks
 		self.othertanks = othertanks
 		self.flags = flags
 		self.shots = shots
-		self.obstacles = obstacles
 		self.bases = bases
 		self.enemies = [tank for tank in othertanks if tank.color !=
 						self.constants['team']]
@@ -111,8 +118,12 @@ class Agent(object):
 			self.commands.append(cmd)
 			
 	def getRunnerTargetPoint(self, mytank):
-				
-		goal = flags[(mytank.index) %len(flags) ]# pick one flag goal
+		goal = self.flags[(mytank.index) %len(self.flags) ]# pick one flag goal
+		if(self.flags[0].color == self.constants['team'] ):
+			goal = self.flags[1]
+		else:
+			goal = self.flags[0]
+
 		if mytank.flag != "-" or goal.poss_color == self.constants['team']:
 			bases = self.bases
 			bases = [base for base in bases if base.color ==
@@ -128,8 +139,8 @@ class Agent(object):
 		
 		#------------------  if still aiming-------------------------------------------------
 		if second == self.lastTimeTargeted or second%getTimeInterval() != 0:
-			for i in range (0, len(self.tankControllers)):
-				cmd = self.tankControllers[i].getTargetingCommand(second)
+			for i in range (0, len(self.shooterControllers)):
+				cmd = self.shooterControllers[i].getTargetingCommand(second)
 				self.commands.append(cmd) 
 		
 		#------------------ if time to update the target and fire again-------------------------------------------------
@@ -139,16 +150,7 @@ class Agent(object):
 			
 			#update the TargetControllers
 			for i in range (0, len(self.targetControllers)):
-				self.targetControllers[i].updateTarget(othertanks[i])
-			
-			#plot the plot
-			if self.lastTimeTargeted!=0:
-				for tank in mytanks:
-					sigma_x = self.targetControllers[0].Et.item((0,0));
-					sigma_y = self.targetControllers[0].Et.item((3,3));
-					target_x = self.targetControllers[0].mewt.item((0,0));
-					target_y = self.targetControllers[0].mewt.item((3,0)); 
-					plt.plot(tank, sigma_x, sigma_y, target_x, target_y)
+				self.targetControllers[i].updateTarget(self.enemies[i])
 			
 			#update our tank controllers
 			for i in range (0, len(self.shooterControllers)):
