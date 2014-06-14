@@ -48,7 +48,8 @@ class PFTankController(object):
 			angleVel = 1
 		elif angleVel < -1: 
 			angleVel = -1
-		
+		elif angleVel == 'nan':
+			angleVel = 0
 		"""					 index, speed, angle, shoot"""
 		return Command(self.tank.index, .7, angleVel, True)
 		

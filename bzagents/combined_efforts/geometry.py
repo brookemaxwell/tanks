@@ -19,6 +19,10 @@ def normalize_angle(angle):
 		angle += 2 * math.pi
 	elif angle > math.pi:
 		angle -= 2 * math.pi
+					
+	if angle == 'nan':
+		angle = 0
+			
 	return angle
 """ calculates the angle(in radians) between two points"""
 def get_angle(point1, point2):

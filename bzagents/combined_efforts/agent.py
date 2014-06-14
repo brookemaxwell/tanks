@@ -9,7 +9,7 @@ import AimTankController
 import EnemyKalmanController
 import PFController
 
-from AimTankController import TankController as AimTankController
+from HunterController import TankController as HunterController
 from EnemyKalmanController import TankController as EnemyKalmanController
 from PFController import PFTankController
 from geometry import Vector, Point
@@ -22,8 +22,7 @@ from potential_field_occ import PotentialField
 def getTimeInterval():
 	return 4
 
-NUM_OF_SHOOTERS = 2;
-NUM_OF_DISTRACTORS = 2;
+NUM_OF_HUNTERS = 4;
 NUM_OF_RUNNERS = 6;
 
 class Agent(object):
@@ -33,7 +32,7 @@ class Agent(object):
 		self.bzrc = bzrc
 		self.constants = self.bzrc.get_constants()
 		self.commands = []
-		self.shooterControllers = []
+		self.hunterControllers = []
 		self.runnerControllers = []
 		self.distractorControllers = []
 		self.targetControllers = []
@@ -51,27 +50,33 @@ class Agent(object):
 		if len(self.runnerControllers) == 0:
 			if(len(mytanks) == 10):
 				
-				for tank in mytanks[0: NUM_OF_SHOOTERS]:
-					self.shooterControllers.append(AimTankController(tank))
-				for tank in mytanks[NUM_OF_SHOOTERS : NUM_OF_SHOOTERS + NUM_OF_RUNNERS]:
+				for tank in mytanks[0: NUM_OF_HUNTERS]:
+					self.hunterControllers.append(HunterController(tank))
+				for tank in mytanks[NUM_OF_HUNTERS : NUM_OF_HUNTERS + NUM_OF_RUNNERS]:
 					self.runnerControllers.append(PFTankController(tank))
-				#for tank in mytanks[NUM_OF_SHOOTERS + NUM_OF_RUNNERS:]:
-				#	self.distractorControllers.append(TankController(tank))#this one doesn't exist yet
-				
+
+			elif(len(mytanks) == 2):
+				for tank in mytanks[0: NUM_OF_HUNTERS]:
+					self.hunterControllers.append(HunterController(tank))
+				for tank in mytanks[NUM_OF_HUNTERS : NUM_OF_HUNTERS + NUM_OF_RUNNERS]:
+					self.runnerControllers.append(PFTankController(tank))
+			
+			
 			for othertank in self.enemies:
 				self.targetControllers.append(EnemyKalmanController(othertank, getTimeInterval()))
 				
-	def updateControllers(self):
+	def updateControllers(self, time_diff):
 		if len(self.runnerControllers) == 0:
 			self.initialize();
 		else:
-			shooters = self.mytanks[0: NUM_OF_SHOOTERS]
-			runners = self.mytanks[NUM_OF_SHOOTERS : NUM_OF_SHOOTERS + NUM_OF_RUNNERS]
+			shooters = self.mytanks[0: NUM_OF_HUNTERS]
+			runners = self.mytanks[NUM_OF_HUNTERS : NUM_OF_HUNTERS + NUM_OF_RUNNERS]
 			
-			for i in range (0, len(self.shooterControllers)):
-				self.shooterControllers[i].tank = shooters[i]
+			for i in range (0, len(self.hunterControllers)):
+				self.hunterControllers[i].tank = shooters[i]
 			for i in range (0, len(self.runnerControllers)):
 				self.runnerControllers[i].tank = runners[i]
+				
 
 	#this code makes it so the targeting is running once every four seconds. 
 	#It takes four seconds for a tank bullet to reach maxium distance and also to reload
@@ -90,10 +95,10 @@ class Agent(object):
 		self.enemies = [tank for tank in othertanks if tank.color !=
 						self.constants['team']]
 		
-		self.updateControllers();
+		self.updateControllers(time_diff);
 		
 		#update everything
-		self.updateShooters(time_diff);
+		self.updateHunters(time_diff);
 		self.updateRunners(time_diff);
 		results = self.bzrc.do_commands(self.commands)
 	
@@ -134,34 +139,35 @@ class Agent(object):
 				
 		return goal
 
-	def updateShooters(self, time_diff):
+	def updateHunters(self, time_diff):
+		#update the location of their tank only once a secon
 		second = int(time_diff)
-		
-		#------------------  if still aiming-------------------------------------------------
-		if second == self.lastTimeTargeted or second%getTimeInterval() != 0:
-			for i in range (0, len(self.shooterControllers)):
-				cmd = self.shooterControllers[i].getTargetingCommand(second)
-				self.commands.append(cmd) 
-		
-		#------------------ if time to update the target and fire again-------------------------------------------------
-		else:
-			#update last time targeteted
+		if second != self.lastTimeTargeted:
+			#update the targeting time
 			self.lastTimeTargeted = second
 			
 			#update the TargetControllers
 			for i in range (0, len(self.targetControllers)):
-				self.targetControllers[i].updateTarget(self.enemies[i])
+				self.targetControllers[i].updateTarget(self.enemies[i])	
+		
+		
+		#feed our tanks continous commands
+		for i in range (0, len(self.hunterControllers)):
+			tankController = self.hunterControllers[i]
 			
-			#update our tank controllers
-			for i in range (0, len(self.shooterControllers)):
-				tankController = self.shooterControllers[i]
-				
-				#get this tanks target controller: the nearest one...
-				target = self.targetControllers[0]
-				
-				tankController.updateTarget(target)				
-				cmd = tankController.getFireCommand()
-				self.commands.append(cmd) 
+			#HANDLE GET TARGET LOGIC
+				#if someone has the flag, attack him
+				#if you don't have a valie target
+					#assign this controller to the tank closest to our flag
+				#otherwise attack the tank closets to the flag
+			target = self.targetControllers[0]
+			
+						
+			cmd = tankController.getTargetingCommand()
+			self.commands.append(cmd) 
+		
+		
+			
 
 def main():
 	# Process CLI arguments.

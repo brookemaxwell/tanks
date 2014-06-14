@@ -125,3 +125,6 @@ class TankController(object):
 		
 		return observationMatrix
 		
+	def isAlive(self):
+		return 1500 > lastX or lastX > -1500
+		
