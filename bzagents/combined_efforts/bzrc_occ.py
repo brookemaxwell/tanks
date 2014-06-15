@@ -119,6 +119,7 @@ class BZRC:
 
         """
         self.expect('ack')
+       
 
     def read_bool(self):
         """Expect a boolean response from the remote tanks.

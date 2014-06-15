@@ -67,3 +67,7 @@ class PFTankController(object):
 			return 3*pi/2
 		else:		
 			return atan2(vy,vx)
+			
+	def isAlive(self):
+		return self.tank.status != 'dead'
+			

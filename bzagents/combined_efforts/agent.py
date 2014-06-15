@@ -16,7 +16,7 @@ from geometry import Vector, Point
 from math import atan2, pi
 
 from grid_prob import GridProbability
-from bzrc_occ import BZRC, Command, Answer
+from bzrc_occ import BZRC, Command, Answer, UnexpectedResponse
 from potential_field_occ import PotentialField
 
 def getTimeInterval():
@@ -39,6 +39,7 @@ class Agent(object):
 		self.oldTime = 0
 		self.lastTimeTargeted = -1
 		self.grid = GridProbability()
+		self.opponentColor ="?"
 		
 	def initialize(self):
 		mytanks, othertanks, flags, shots, bases = self.bzrc.get_lots_o_stuff()
@@ -81,6 +82,7 @@ class Agent(object):
 	#this code makes it so the targeting is running once every four seconds. 
 	#It takes four seconds for a tank bullet to reach maxium distance and also to reload
 	def tick(self, time_diff):
+		#print "ticking "+ str(time_diff)
 		
 		#------------------  Set Up -------------------------------------------------
 		self.commands = []
@@ -110,17 +112,21 @@ class Agent(object):
 		for i in range(len(self.runnerControllers)):
 			tankController = self.runnerControllers[i]
 			#for tankController in self.tankControllers:
-			tank = tankController.tank
 			
-			#update occ grid
-			pos, curGrid = self.bzrc.get_occgrid(tank.index)
 			
-			self.grid.update_probabilities(curGrid, pos[0], pos[1])
-			
-			#give tank directions
-			desiredVector = pf.get_desired_accel_vector(tank, time_diff)
-			cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
-			self.commands.append(cmd)
+			if tankController.isAlive():
+				tank = tankController.tank
+				#update occ grid
+				try:
+					pos, curGrid = self.bzrc.get_occgrid(tank.index)
+					self.grid.update_probabilities(curGrid, pos[0], pos[1])
+				except UnexpectedResponse:
+					print "caught error"
+				
+				#give tank directions
+				desiredVector = pf.get_desired_accel_vector(tank, time_diff)
+				cmd = tankController.getCommandFromVectors(desiredVector, time_diff)
+				self.commands.append(cmd)
 			
 	def getRunnerTargetPoint(self, mytank):
 		goal = self.flags[(mytank.index) %len(self.flags) ]# pick one flag goal
@@ -150,24 +156,40 @@ class Agent(object):
 			for i in range (0, len(self.targetControllers)):
 				self.targetControllers[i].updateTarget(self.enemies[i])	
 		
-		
 		#feed our tanks continous commands
 		for i in range (0, len(self.hunterControllers)):
 			tankController = self.hunterControllers[i]
 			
-			#HANDLE GET TARGET LOGIC
-				#if someone has the flag, attack him
-				#if you don't have a valie target
-					#assign this controller to the tank closest to our flag
-				#otherwise attack the tank closets to the flag
-			target = self.targetControllers[0]
+			#if the opponent has the flag, attack
+			if self.opponenthasFlag():
+				tankController.target = self.getFlagBearer()
 			
-						
-			cmd = tankController.getTargetingCommand()
-			self.commands.append(cmd) 
+			#otherwise attack the tank closets to the flag
+			elif not tankController.hasValidTarget() and 5 < time_diff:
+				tankController.target= self.getOpponentClosestToFlag()
+				cmd = tankController.getTargetingCommand()
+				self.commands.append(cmd) 
+		
+		
+		
+	def opponenthasFlag(self):
+		if self.opponentColor =="?":
+			self.opponentColor = self.othertanks[0].color
+		for i in range(0, len(self.flags)):
+				if not self.flags[i].color == self.opponentColor:
+					return self.flags[i].poss_color == self.opponentColor
+		print "iteratred throug all flags and couldn't find our own?"
+		return False;			
 		
 		
 			
+	def getFlagBearer(self):
+		#^^^Ian todo
+		return 0
+		
+	def getOpponentClosestToFlag(self):
+		#^^^Ian todo
+		return 0	
 
 def main():
 	# Process CLI arguments.
