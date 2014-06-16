@@ -39,7 +39,7 @@ class Agent(object):
 		self.oldTime = 0
 		self.lastTimeTargeted = -1
 		self.grid = GridProbability()
-		self.opponentColor ="?"
+		self.ourFlag ="?"
 		
 	def initialize(self):
 		mytanks, othertanks, flags, shots, bases = self.bzrc.get_lots_o_stuff()
@@ -77,6 +77,14 @@ class Agent(object):
 				self.hunterControllers[i].tank = shooters[i]
 			for i in range (0, len(self.runnerControllers)):
 				self.runnerControllers[i].tank = runners[i]
+			#update the TargetControllers
+			for i in range (0, len(self.enemies)):
+				self.targetControllers[i].tank = self.enemies[i]
+			
+			self.opponentColor = self.othertanks[0].color
+			for i in range(0, len(self.flags)):
+				if not self.flags[i].color == self.opponentColor:
+					self.ourFlag = self.flags[i]
 				
 
 	#this code makes it so the targeting is running once every four seconds. 
@@ -165,31 +173,53 @@ class Agent(object):
 				tankController.target = self.getFlagBearer()
 			
 			#otherwise attack the tank closets to the flag
-			elif not tankController.hasValidTarget() and 5 < time_diff:
+			elif (not tankController.hasValidTarget()) and 8 < time_diff:
 				tankController.target= self.getOpponentClosestToFlag()
+				
+			if tankController.hasValidTarget():
 				cmd = tankController.getTargetingCommand()
 				self.commands.append(cmd) 
 		
 		
 		
-	def opponenthasFlag(self):
-		if self.opponentColor =="?":
-			self.opponentColor = self.othertanks[0].color
-		for i in range(0, len(self.flags)):
-				if not self.flags[i].color == self.opponentColor:
-					return self.flags[i].poss_color == self.opponentColor
-		print "iteratred throug all flags and couldn't find our own?"
-		return False;			
+	def opponenthasFlag(self):		
+		return self.ourFlag.poss_color == self.opponentColor
+		
+		
 		
 		
 			
 	def getFlagBearer(self):
-		#^^^Ian todo
-		return 0
+		closestController = self.targetControllers[0]
+		closestDistance = 40000
+		
+		for i in range (0, len(self.targetControllers)):
+			enemyController = self.targetControllers[i]
+			if enemyController.isAlive():
+				dist = dist2(enemyController.tank, self.ourFlag)
+				if dist < closestDistance:
+					closestDistance = dist
+					closestController = enemyController
+		return closestController
+		
 		
 	def getOpponentClosestToFlag(self):
-		#^^^Ian todo
-		return 0	
+		closestController = self.targetControllers[0]
+		closestDistance = 40000
+		
+		for i in range (0, len(self.targetControllers)):
+			enemyController = self.targetControllers[i]
+			if enemyController.isAlive():
+				dist = dist2(enemyController.tank, self.ourFlag)
+				if dist < closestDistance:
+					closestDistance = dist
+					closestController = enemyController
+
+		return closestController
+
+def dist2( v, w):
+	return (v.x - w.x)**2 + (v.y - w.y)**2
+	
 
 def main():
 	# Process CLI arguments.

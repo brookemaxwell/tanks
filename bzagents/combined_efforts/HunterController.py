@@ -15,7 +15,7 @@ class TankController(object):
 	
 	def hasValidTarget(self):
 		if self.target == 0:
-			return True
+			return False
 		else:
 			return self.target.isAlive()
 			
@@ -45,17 +45,53 @@ class TankController(object):
 		
 	
 	def getTargetingCommand(self):
-			yDiff = self.targetY - self.tank.y
-			xDiff = self.targetX - self.tank.x
+		yDiff = self.targetY - self.tank.y
+		xDiff = self.targetX - self.tank.x
+		
+		target_angle = atan2(yDiff, xDiff)
+		
+		curTankAngle = self.getCurrentDirectionInPolar()
+		angleDiff = target_angle - curTankAngle
+		
+		if abs(angleDiff + 2*pi) < abs(angleDiff):
+			angleDiff = angleDiff + 2*pi
+		elif abs(angleDiff - 2*pi) < abs(angleDiff):
+			angleDiff = angleDiff - 2*pi
+		angleVel = angleDiff
+		#TODO depending on how we get the angle and speed, convert these to a command
+		
+		if 1 < angleVel:
+			angleVel = 1
+		elif angleVel < -1: 
+			angleVel = -1
+		elif angleVel == 'nan':
+			angleVel = 0
+		"""					 index, speed, angle, shoot"""
+		return Command(self.tank.index, .5, angleVel, True)	
 			
-			target_angle = atan2(yDiff, xDiff)
-			relative_angle = normalize_angle(target_angle - self.tank.angle)
-			
-			angleVel = relative_angle * 2 #/time_diff
-			
-			if angleVel == 'nan':
-				angleVel = 0
-				
-			return Command(self.tank.index, .5, angleVel, True)
+		
+		
+
+		
+		
+	"""Returns the tanks direction of movment in polar coordinates. It uses the  tank x and y velocity to do so"""	
+	def getCurrentDirectionInPolar(self):
+		vx = self.tank.vx
+		vy = self.tank.vy
+		
+		#the follow statement prevents divide by zero errors
+		if vx == 0 and vy == 0:
+			return 0
+		elif vx == 0 and 0 < vy:
+			return pi/2
+		elif vx == 0 and vy < 0:
+			return 3*pi/2
+		else:		
+			return atan2(vy,vx)
+		
+		
+		
+		
+
 		
 	
